@@ -1,15 +1,15 @@
-def show_grid():
+def show_image():
     pass
 
 
 def make_move():
-    show_grid()
+    show_field()
     x, y = input(), input()
     #is correct input
     #is mine
 
 
-def generate_grid():
+def generate_field():
     pass
 
 
@@ -18,8 +18,8 @@ def is_finish():
 
 
 def start_game():
-    grid, field = generate_grid()
-    while make_move(grid):
+    field, image = generate_grid()
+    while make_move(field):
         pass
 
 
