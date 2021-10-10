@@ -30,3 +30,4 @@ def is_new_game():
 def main():
     while is_new_game():
         start_game()
+
