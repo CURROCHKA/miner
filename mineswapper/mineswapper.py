@@ -12,8 +12,8 @@ def open_values(image) -> int:
 
 def calculate_value(image, x, y):
     mines = 0
-    #for
-        #for
+    # for
+        # for
     return mines
 
 
@@ -28,28 +28,29 @@ def show_image(image):
 
 
 def make_move(field, image):
-    x, y = input(), input()
-    #is correct input
-    #if not
-        #return image, True
-
-    #is clicked ???
-    #if yes
-        #return image, True
-
-    #if is_mine(field, x, y):
-        #yes
-        #image = failed_image(field, image)
-        #return image, False
-
-        #not
-        #image = new_image(image, x, y)
-        #return image, True
+    x, y = map(int, input('Введите номер элемента в строке и номер элемента в столбце: ').split())
+    # is correct input
+    if x > len(field[0]) or y > len(field):
+        return 'Пожалуйста, введите верные координаты', True
 
 
-def generate_field(n, m, mines_number) -> tuple:
+    # is clicked ???
+    # if yes
+        # return image, True
+
+    # if is_mine(field, x, y):
+        # yes
+        # image = failed_image(field, image)
+        # return image, False
+
+        # not
+        # image = new_image(image, x, y)
+        # return image, True
+
+
+def generate_field(num_of_rows, num_of_columns, mines_number) -> tuple:
     pass
-    #return field, image
+    # return field, image
 
 
 def is_finish():
@@ -58,16 +59,17 @@ def is_finish():
 
 def start_game():
 
-    n, m, mines_number = input(), input(), input()
-    field, image = generate_field(n, m, mines_number)
+    num_of_rows, num_of_columns = map(int, input('Введите количество строк и столбцов: ').split())
+    mines_number = int(input('Введите количество мин: '))
+    field, image = generate_field(num_of_rows, num_of_columns, mines_number)
     game_status = True
 
     while game_status:
-        if open_values(image) == n * m - mines_number:
+        if open_values(image) == num_of_rows * num_of_columns - mines_number:
             game_status = False
         else:
             show_image(image)
-            image, game_status = make_move(field, image)
+            image, game_status = make_move(field, image) # game_status
 
 
 def is_new_game() -> bool:
