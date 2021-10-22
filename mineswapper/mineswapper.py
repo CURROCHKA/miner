@@ -1,3 +1,14 @@
+def correct_input(xy, field):
+    if len(xy) > 2 or len(xy) < 2:
+        return 'Пожалуйста, введите верные координаты'
+    elif not xy[0].isdigit() or not xy[1].isdigit():
+        return 'Пожалуйста, введите верные координаты'
+    elif xy[0] < 0 or xy[1] < 0:
+        return 'Пожалуйста, введите верные координаты'
+    elif xy[0] > len(field[0]) or xy[1] > len(field):
+        return 'Пожалуйста, введите верные координаты'
+    return True
+
 def failed_image(field, image):
     pass
 
@@ -28,11 +39,10 @@ def show_image(image):
 
 
 def make_move(field, image):
-    x, y = map(int, input('Введите номер элемента в строке и номер элемента в столбце: ').split())
-    # is correct input
-    if x > len(field[0]) or y > len(field):
-        return 'Пожалуйста, введите верные координаты', True
-
+    x, y = int(input()), int(input())
+    xy = [x, y]
+    if correct_input(xy, field):
+        return False
 
     # is clicked ???
     # if yes
