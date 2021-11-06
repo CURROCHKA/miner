@@ -1,4 +1,4 @@
-def correct_input(xy, field) -> bool:
+def correct_input(xy: list, field: list) -> bool:
 
     if len(xy) == 2 \
             and all(isinstance(i, int) for i in xy) \
@@ -26,18 +26,18 @@ def calculate_value(field, x, y) -> int:
     return mines
 
 
-def new_image(field, image, x, y) -> list:
+def new_image(field: list, image: list, x: int, y: int) -> list:
 
     new_value = calculate_value(field, x, y)
     image[x][y] = new_value
     return image
 
 
-def failed_image(field, image) -> list:
+def failed_image(field: list, image: list) -> list:
 
-    for i in range(len(field)):
-        for j in range(len(image)):
-            if 1 == field[i][j]:
+    for i, sublist in enumerate(field):
+        for j, cell in enumerate(sublist):
+            if cell == 1:
                 image[i][j] = '*'
     return image
 
