@@ -1,19 +1,16 @@
-def correct_input(xy, field) -> bool:
-    if len(xy) > 2 or len(xy) < 2:
-        #print('Пожалуйста, введите верные координаты')
-        #return False
-        return 'Пожалуйста, введите верные координаты'
-    elif not xy[0].isdigit() or not xy[1].isdigit():
-        return 'Пожалуйста, введите верные координаты'
-    elif xy[0] < 0 or xy[1] < 0:
-        return 'Пожалуйста, введите верные координаты'
-    elif xy[0] > len(field[0]) or xy[1] > len(field):
-        return 'Пожалуйста, введите верные координаты'
-    return True
+def correct_input(xy: list, field: list) -> bool:
 
+    if len(xy) == 2 \
+            and all(isinstance(i, int) for i in xy) \
+            and all(i >= 0 for i in xy) \
+            and xy[0] <= len(field[0]) - 1 and xy[1] <= len(field) - 1:
+        return True
+    print('Пожалуйста, введите верные координаты')
+    return False
 
 
 def is_mine(field: list, x: int, y: int) -> bool:
+
     if field[x][y] == 1:
         return True
     return False
@@ -23,22 +20,26 @@ def open_values(image) -> int:
     pass
 
 
-def calculate_value(field, x, y):
+def calculate_value(field, x, y) -> int:
+
     mines = 0
-    # for
-        # for
     return mines
 
 
-def new_image(field, image, x, y):
+def new_image(field: list, image: list, x: int, y: int) -> list:
+
     new_value = calculate_value(field, x, y)
     image[x][y] = new_value
     return image
 
 
-def failed_image(field, image):
-    #Catch all mines from field to image
-    pass
+def failed_image(field: list, image: list) -> list:
+
+    for i, sublist in enumerate(field):
+        for j, cell in enumerate(sublist):
+            if cell == 1:
+                image[i][j] = '*'
+    return image
 
 
 def show_image(image):
@@ -46,6 +47,7 @@ def show_image(image):
 
 
 def make_move(field, image):
+
     x, y = int(input()), int(input())
     xy = [x, y]
     if correct_input(xy, field):
@@ -85,7 +87,7 @@ def start_game():
             game_status = False
         else:
             show_image(image)
-            image, game_status = make_move(field, image) # game_status
+            image, game_status = make_move(field, image)
 
 
 def is_new_game() -> bool:
@@ -93,6 +95,7 @@ def is_new_game() -> bool:
 
 
 def main():
+
     while is_new_game():
         start_game()
 
