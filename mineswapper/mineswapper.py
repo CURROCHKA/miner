@@ -16,14 +16,26 @@ def is_mine(field: list, x: int, y: int) -> bool:
     return False
 
 
-def open_values(image) -> int:
+def open_values(image: list) -> int:
     pass
 
 
-def calculate_value(field, x, y) -> int:
-
+def calculate_value(field: list, x: int, y: int) -> int:
     mines = 0
+
+    for i in range(-1, 2):
+        for j in range(-1, 2):
+            if 0 <= x + i < len(field) and 0 <= y + j < len(field[0]) and not (i == 0 and j == 0):
+                if field[x + i][y + j] == 1:
+                    mines += 1
     return mines
+
+
+field = [[1, 0, 0],
+         [1, 1, 0],
+         [0, 0, 1]]
+x, y = 2, 0
+print(calculate_value(field, x, y))
 
 
 def new_image(field: list, image: list, x: int, y: int) -> list:
@@ -46,8 +58,7 @@ def show_image(image):
     pass
 
 
-def make_move(field, image):
-
+def make_move(field: list, image: list):
     x, y = int(input()), int(input())
     xy = [x, y]
     if correct_input(xy, field):
