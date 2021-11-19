@@ -31,13 +31,6 @@ def calculate_value(field: list, x: int, y: int) -> int:
     return mines
 
 
-field = [[1, 0, 0],
-         [1, 1, 0],
-         [0, 0, 1]]
-x, y = 2, 0
-print(calculate_value(field, x, y))
-
-
 def new_image(field: list, image: list, x: int, y: int) -> list:
 
     new_value = calculate_value(field, x, y)
