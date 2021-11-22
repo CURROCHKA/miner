@@ -24,10 +24,10 @@ image = [['#', '3', '#'],
 
 def show_image(image):
     for i in image:
-        print(str(i)[1:-1])
+        print(' '.join(i))
 
 
-# print(show_image(image))
+show_image(image)
 
 
 def open_values(image: list) -> int:
@@ -41,3 +41,13 @@ def open_values(image: list) -> int:
 
 
 print(open_values(image))
+
+
+def generate_field(num_of_rows: int, num_of_columns: int, mines_number: int) -> list:
+    from random import randint
+    field = [[]]
+
+    return field #, image
+
+
+print(generate_field(3,3,1))

@@ -54,7 +54,8 @@ def failed_image(field: list, image: list) -> list:
 
 
 def show_image(image):
-    print(image)
+    for i in image:
+        print(' '.join(i))
 
 
 def make_move(field: list, image: list):
