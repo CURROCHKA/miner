@@ -1,53 +1,17 @@
-"""
-
-field = [[1, 0, 0], [1, 1, 0], [0, 0, 1]]
-image = [['.', '.', '.'], ['.', '.', '.'], ['.', '.', '.']]
-
-"""
-
-"""
-(i, j)
-
-(i-1, j)
-(i+1, j)
-(i, j-1)
-(i, j+1)
-(i+1, j+1)
-(i-1, j-1)
-(i+1, j-1)
-(i-1, j+1)
-"""
-image = [['#', '3', '#'],
+'''image = [['#', '3', '#'],
          ['2', '#', '#'],
-         ['#', '#', '1']]
-
-
-def show_image(image):
-    for i in image:
-        print(' '.join(i))
-
-
-show_image(image)
-
-
-def open_values(image: list) -> int:
-    count = 0
-
-    for i in image:
-        for j in i:
-            if j != '#':
-                count += 1
-    return count
-
-
-print(open_values(image))
-
+         ['#', '#', '1']]'''
 
 def generate_field(num_of_rows: int, num_of_columns: int, mines_number: int) -> list:
+
     from random import randint
-    field = [[]]
+    from random import shuffle
+    field = [0] * (num_of_rows * num_of_columns)
+    print(shuffle(field))
+    #field = [[randint(0, 1) for i in range(num_of_rows)] for j in range(num_of_columns)]
+    image = [['#' for i in range(num_of_rows)] for j in range(num_of_columns)]
 
-    return field #, image
+    return field, image
 
 
-print(generate_field(3,3,1))
+print(generate_field(3, 3, 1))

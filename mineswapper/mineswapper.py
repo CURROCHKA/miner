@@ -77,9 +77,8 @@ def make_move(field: list, image: list):
         return image, True
 
 
-def generate_field(num_of_rows, num_of_columns, mines_number) -> tuple:
-    pass
-    # return field, image
+def generate_field(num_of_rows: int, num_of_columns: int, mines_number: int) -> list:
+    #return field, image
 
 
 def is_finish():
@@ -108,8 +107,8 @@ def is_new_game() -> bool:
 
 def main():
 
-    while is_new_game():
-        start_game()
+    #while is_new_game():
+    start_game()
 
 
 main()
