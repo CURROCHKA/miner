@@ -1,7 +1,3 @@
-'''image = [['#', '3', '#'],
-         ['2', '#', '#'],
-         ['#', '#', '1']]'''
-
 def generate_field(num_of_rows: int, num_of_columns: int, mines_number: int) -> list:
 
     from random import randint
