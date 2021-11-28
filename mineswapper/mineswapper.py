@@ -17,7 +17,13 @@ def is_mine(field: list, x: int, y: int) -> bool:
 
 
 def open_values(image: list) -> int:
-    pass
+    count = 0
+
+    for i in image:
+        for j in i:
+            if j != '#':
+                count += 1
+    return count
 
 
 def calculate_value(field: list, x: int, y: int) -> int:
@@ -48,13 +54,14 @@ def failed_image(field: list, image: list) -> list:
 
 
 def show_image(image):
-    pass
+    for i in image:
+        print(' '.join(i))
 
 
 def make_move(field: list, image: list):
     x, y = int(input()), int(input())
     xy = [x, y]
-    if correct_input(xy, field):
+    if not correct_input(xy, field):
         return image, False
 
     # is clicked ???
@@ -70,9 +77,8 @@ def make_move(field: list, image: list):
         return image, True
 
 
-def generate_field(num_of_rows, num_of_columns, mines_number) -> tuple:
-    pass
-    # return field, image
+def generate_field(num_of_rows: int, num_of_columns: int, mines_number: int) -> list:
+    #return field, image
 
 
 def is_finish():
@@ -81,13 +87,14 @@ def is_finish():
 
 def start_game():
 
-    num_of_rows, num_of_columns = map(int, input('Введите количество строк и столбцов: ').split())
+    num_of_rows, num_of_columns = int(input('Введите кол-во строк: ')), int(input('Введите кол-во столбцов: '))
     mines_number = int(input('Введите количество мин: '))
     field, image = generate_field(num_of_rows, num_of_columns, mines_number)
     game_status = True
 
     while game_status:
         if open_values(image) == num_of_rows * num_of_columns - mines_number: #win
+            show_image(image)
             game_status = False
         else:
             show_image(image)
@@ -100,9 +107,9 @@ def is_new_game() -> bool:
 
 def main():
 
-    while is_new_game():
-        start_game()
+    #while is_new_game():
+    start_game()
 
 
-#main()
+main()
 
