@@ -79,6 +79,7 @@ def make_move(field: list, image: list):
 
 def generate_field(num_of_rows: int, num_of_columns: int, mines_number: int) -> list:
     #return field, image
+    pass
 
 
 def is_finish():
@@ -111,4 +112,5 @@ def main():
     start_game()
 
 
-main()
+#main()
+
