@@ -83,7 +83,7 @@ def check_square(
     :param square_params:
     :return:
     """
-    sleep(0.04)
+    sleep(0.3)
     x, y = start_pointer[0], start_pointer[1]
 
     if matrix[x][y] == 1 or matrix[x][y] == 3:
@@ -117,9 +117,7 @@ def check_square(
         square_params,
     )
 
-    if (
-        (
-            x < len(matrix) - 1
+    if ((x < len(matrix) - 1
             and check_square((x + 1, y), matrix, grid_display, square_params)
         )
         or (y > 0 and check_square((x, y - 1), matrix, grid_display, square_params))
