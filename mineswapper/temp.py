@@ -1,11 +1,16 @@
-from random import shuffle
+'''if mines_number == 0:
+    failed_image(field, image)
+    show_image(image)
+    game_status = False
+else:
+    game_status = True'''
 
 
-def generate_field(num_of_rows: int, num_of_columns: int, mines_number: int) -> list:
-    image = [['#' for i in range(num_of_rows)] for j in range(num_of_columns)]
-    field = [0] * (num_of_rows * num_of_columns - mines_number) + [1] * mines_number
-    field_test = [[0 for i in range(num_of_rows)] for j in range(num_of_columns)]
-    return field
+def correct_field(num_of_rows, num_of_columns, mines_number) -> bool:
+    if all(i.isdigit() for i in [num_of_rows, num_of_columns, mines_number]):
+        if int(num_of_rows) > 0 and int(num_of_columns) > 0 and int(mines_number) > 0:
+            return True
+    return False
 
 
-print(generate_field(2, 2, 2))
+print(correct_field(input(), input(), input()))

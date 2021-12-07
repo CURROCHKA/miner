@@ -1,6 +1,15 @@
 from random import shuffle
 
 
+def correct_field(num_of_rows, num_of_columns, mines_number) -> bool:
+
+    if all(i.isdigit() for i in [num_of_rows, num_of_columns, mines_number]):
+        if int(num_of_rows) > 0 and int(num_of_columns) > 0 and int(mines_number) > 0:
+            return True
+    print('Пожалуйста, введите верные данные')
+    return False
+
+
 def correct_input(xy: list, field: list) -> bool:
 
     if len(xy) == 2 \
@@ -81,13 +90,13 @@ def make_move(field: list, image: list):
 
 
 def generate_field(num_of_rows: int, num_of_columns: int, mines_number: int) -> list:
-    image = [['#' for i in range(num_of_rows)] for j in range(num_of_columns)]
-    field = [0] * (num_of_rows * num_of_columns - mines_number) + [1] * mines_number
-    shuffle(field)
     present_field = []
     temp_list = []
+    image = [['#' for i in range(int(num_of_rows))] for j in range(int(num_of_columns))]
+    field = [0] * (int(num_of_rows) * int(num_of_columns) - int(mines_number)) + [1] * int(mines_number)
+    shuffle(field)
     for i, j in enumerate(field):
-        if not (i + 1) % num_of_columns:
+        if not (i + 1) % int(num_of_columns):
             temp_list.append(j)
             present_field.append(temp_list)
             temp_list = []
@@ -103,23 +112,18 @@ def is_finish():
 
 def start_game():
 
-    num_of_rows, num_of_columns = int(input('Введите кол-во строк: ')), int(input('Введите кол-во столбцов: '))
-    mines_number = int(input('Введите количество мин: '))
-    field, image = generate_field(num_of_rows, num_of_columns, mines_number)
-
-    if mines_number == 0:
-        failed_image(field, image)
-        show_image(image)
-        game_status = False
+    num_of_rows, num_of_columns = input('Введите кол-во строк: '), input('Введите кол-во столбцов: ')
+    mines_number = input('Введите количество мин: ')
+    if correct_field(num_of_rows, num_of_columns, mines_number):
+        field, image = generate_field(num_of_rows, num_of_columns, mines_number)
     else:
-        game_status = True
+        start_game()
+
+    game_status = True
 
     while game_status:
-        if open_values(image) == num_of_rows * num_of_columns - mines_number:
+        if open_values(image) == int(num_of_rows) * int(num_of_columns) - int(mines_number):
             print('Победа!')
-            if num_of_rows == 1 and num_of_columns == 1:
-                failed_image(field, image)
-                break
             failed_image(field, image)
             game_status = False
         else:
