@@ -10,13 +10,13 @@ def correct_field(num_of_rows, num_of_columns, mines_number) -> bool:
     return False
 
 
-def correct_input(xy: list, field: list) -> bool:
+def correct_input(x: str, y: str, field: list) -> bool:
 
-    if len(xy) == 2 \
-            and all(isinstance(i, int) for i in xy) \
-            and all(i >= 0 for i in xy) \
-            and xy[0] <= len(field[0]) - 1 and xy[1] <= len(field) - 1:
-        return True
+    if len([x, y]) == 2:
+        if all(i.isdigit() for i in [x, y]) \
+                and all(int(i) >= 0 for i in [x, y]) \
+                and int(x) <= len(field[0]) - 1 and int(y) <= len(field) - 1:
+            return True
     print('Пожалуйста, введите верные координаты')
     return False
 
@@ -71,25 +71,26 @@ def show_image(image):
 
 
 def make_move(field: list, image: list):
-    x, y = int(input('Введите номер строки: ')), int(input('Введите номер столбца: '))
-    xy = [x, y]
-    if not correct_input(xy, field):
+    x, y = input('Введите номер строки: '), input('Введите номер столбца: ')
+    if not correct_input(x, y, field):
         return image, True
 
     # is clicked ???
     # if yes
         # return image, True
-
+    x = int(x)
+    y = int(y)
     if is_mine(field, x, y):
-        print('Game over')
+        print('Game over!')
         image = failed_image(field, image)
+        show_image(image)
         return image, False
     else:
         image = new_image(field, image, x, y)
         return image, True
 
 
-def generate_field(num_of_rows: int, num_of_columns: int, mines_number: int) -> list:
+def generate_field(num_of_rows: str, num_of_columns: str, mines_number: str) -> list:
     present_field = []
     temp_list = []
     image = [['#' for i in range(int(num_of_rows))] for j in range(int(num_of_columns))]
@@ -111,13 +112,23 @@ def is_finish():
 
 
 def start_game():
+    field_status = True
 
-    num_of_rows, num_of_columns = input('Введите кол-во строк: '), input('Введите кол-во столбцов: ')
-    mines_number = input('Введите количество мин: ')
-    if correct_field(num_of_rows, num_of_columns, mines_number):
-        field, image = generate_field(num_of_rows, num_of_columns, mines_number)
-    else:
-        start_game()
+    while field_status:
+
+        print('Выберите уровень сложонсти: easy, medium, hard, custom')
+        difficult = difficult_lvl()
+
+        if difficult == 'custom':
+            num_of_rows, num_of_columns = input('Введите кол-во строк: '), input('Введите кол-во столбцов: ')
+            mines_number = input('Введите кол-во мин: ')
+            if correct_field(num_of_rows, num_of_columns, mines_number):
+                field, image = generate_field(num_of_rows, num_of_columns, mines_number)
+                field_status = False
+        else:
+            num_of_rows, num_of_columns, mines_number = difficult
+            field, image = generate_field(num_of_rows, num_of_columns, mines_number)
+            field_status = False
 
     game_status = True
 
@@ -125,20 +136,52 @@ def start_game():
         if open_values(image) == int(num_of_rows) * int(num_of_columns) - int(mines_number):
             print('Победа!')
             failed_image(field, image)
+            show_image(image)
             game_status = False
         else:
             show_image(image)
             image, game_status = make_move(field, image)
-    show_image(image)
+
+
+def difficult_lvl():
+    easy = (3, 3, 3)
+    medium = (5, 5, 7)
+    hard = (7, 7, 18)
+    difficult_status = True
+    while difficult_status:
+        difficult = input()
+        if difficult == 'easy':
+            difficult_status = False
+            return easy
+        elif difficult == 'medium':
+            difficult_status = False
+            return medium
+        elif difficult == 'hard':
+            difficult_status = False
+            return hard
+        elif difficult == 'custom':
+            difficult_status = False
+            return 'custom'
+        else:
+            print('Выберите уровень сложонсти: easy, medium, hard, custom')
 
 
 def is_new_game() -> bool:
-    pass
+    new_game_status = True
+    while new_game_status:
+        print('Новая игра: Y', 'Завершить игру: N', sep='\n')
+        string = input()
+        if string == 'Y':
+            new_game_status = False
+            return True
+        elif string == 'N':
+            new_game_status = False
+            return False
 
 
 def main():
-    #while is_new_game():
-    start_game()
+    while is_new_game():
+        start_game()
 
 
 main()
