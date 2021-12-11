@@ -1,28 +1,34 @@
 from random import shuffle
 
+'''def statistic(victory, lose):
+    with open('statistic.txt', 'w') as s:
+        s.write(f'Victory - {victory}')
+        s.write('\n')
+        s.write(f'Lose - {lose}')
+
+
+statistic(1, 2)
+'''
+
 
 def correct_field(num_of_rows, num_of_columns, mines_number) -> bool:
-
-    if all(i.isdigit() for i in [num_of_rows, num_of_columns, mines_number]):
-        if int(num_of_rows) > 0 and int(num_of_columns) > 0 and int(mines_number) > 0:
-            return True
-    print('Пожалуйста, введите верные данные')
+    if all(i.isdigit() for i in [num_of_rows, num_of_columns, mines_number]) \
+            and int(num_of_rows) > 0 and int(num_of_columns) > 0 and int(mines_number) > 0:
+        return True
+    print('Введите верные данные')
     return False
 
 
 def correct_input(x: str, y: str, field: list) -> bool:
-
-    if len([x, y]) == 2:
-        if all(i.isdigit() for i in [x, y]) \
-                and all(int(i) >= 0 for i in [x, y]) \
-                and int(x) <= len(field[0]) - 1 and int(y) <= len(field) - 1:
-            return True
-    print('Пожалуйста, введите верные координаты')
+    if all(i.isdigit() for i in [x, y]) \
+            and all(int(i) >= 0 for i in [x, y]) \
+            and int(x) <= len(field) - 1 and int(y) <= len(field[0]) - 1:
+        return True
+    print('Введите верные координаты')
     return False
 
 
 def is_mine(field: list, x: int, y: int) -> bool:
-
     if field[x][y] == 1:
         return True
     return False
@@ -50,14 +56,12 @@ def calculate_value(field: list, x: int, y: int) -> int:
 
 
 def new_image(field: list, image: list, x: int, y: int) -> list:
-
     new_value = calculate_value(field, x, y)
     image[x][y] = str(new_value)
     return image
 
 
 def failed_image(field: list, image: list) -> list:
-
     for i, sublist in enumerate(field):
         for j, cell in enumerate(sublist):
             if cell == 1:
@@ -77,7 +81,7 @@ def make_move(field: list, image: list):
 
     # is clicked ???
     # if yes
-        # return image, True
+    # return image, True
     x = int(x)
     y = int(y)
     if is_mine(field, x, y):
@@ -93,17 +97,16 @@ def make_move(field: list, image: list):
 def generate_field(num_of_rows: str, num_of_columns: str, mines_number: str) -> list:
     present_field = []
     temp_list = []
-    image = [['#' for i in range(int(num_of_rows))] for j in range(int(num_of_columns))]
+    image = [['#' for i in range(int(num_of_columns))] for j in range(int(num_of_rows))]
     field = [0] * (int(num_of_rows) * int(num_of_columns) - int(mines_number)) + [1] * int(mines_number)
     shuffle(field)
     for i, j in enumerate(field):
         if not (i + 1) % int(num_of_columns):
             temp_list.append(j)
             present_field.append(temp_list)
-            temp_list = []
+            temp_list = []  # метод clear() здесь не работает
         else:
             temp_list.append(j)
-
     return present_field, image
 
 
@@ -112,24 +115,8 @@ def is_finish():
 
 
 def start_game():
-    field_status = True
-
-    while field_status:
-
-        print('Выберите уровень сложонсти: easy, medium, hard, custom')
-        difficult = difficult_lvl()
-
-        if difficult == 'custom':
-            num_of_rows, num_of_columns = input('Введите кол-во строк: '), input('Введите кол-во столбцов: ')
-            mines_number = input('Введите кол-во мин: ')
-            if correct_field(num_of_rows, num_of_columns, mines_number):
-                field, image = generate_field(num_of_rows, num_of_columns, mines_number)
-                field_status = False
-        else:
-            num_of_rows, num_of_columns, mines_number = difficult
-            field, image = generate_field(num_of_rows, num_of_columns, mines_number)
-            field_status = False
-
+    num_of_rows, num_of_columns, mines_number = difficult_lvl()
+    field, image = generate_field(num_of_rows, num_of_columns, mines_number)
     game_status = True
 
     while game_status:
@@ -143,27 +130,32 @@ def start_game():
             image, game_status = make_move(field, image)
 
 
+def diff_custom():
+    diff_status = True
+    while diff_status:
+        num_of_rows, num_of_columns = input('Введите кол-во строк: '), input('Введите кол-во столбцов: ')
+        mines_number = input('Введите кол-во мин: ')
+        if correct_field(num_of_rows, num_of_columns, mines_number):
+            diff_status = False
+    return num_of_rows, num_of_columns, mines_number
+
+
 def difficult_lvl():
     easy = (3, 3, 3)
     medium = (5, 5, 7)
     hard = (7, 7, 18)
-    difficult_status = True
-    while difficult_status:
-        difficult = input()
-        if difficult == 'easy':
-            difficult_status = False
-            return easy
-        elif difficult == 'medium':
-            difficult_status = False
-            return medium
-        elif difficult == 'hard':
-            difficult_status = False
-            return hard
-        elif difficult == 'custom':
-            difficult_status = False
-            return 'custom'
-        else:
-            print('Выберите уровень сложонсти: easy, medium, hard, custom')
+    difficult_input = ''
+    while difficult_input not in ['1', '2', '3', '4']:
+        difficult_input = input('Выберите уровень сложонсти:\neasy - 1;\nmedium - 2;\nhard - 3;\ncustom - 4\n')
+        if difficult_input == '1':
+            difficult = easy
+        elif difficult_input == '2':
+            difficult = medium
+        elif difficult_input == '3':
+            difficult = hard
+        elif difficult_input == '4':
+            difficult = diff_custom()
+    return difficult
 
 
 def is_new_game() -> bool:
