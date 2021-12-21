@@ -1,3 +1,9 @@
+a = input("word: ")
+b=30
+print("*" * b)
+if len(a) <= b:
+    print("*", " " * (b//2 -len(a)) + a," " * (b//2 - len(a)), "*")
+print("*" * b)
 from random import shuffle
 
 
