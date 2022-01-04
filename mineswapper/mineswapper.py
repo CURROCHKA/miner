@@ -198,6 +198,7 @@ def is_new_game() -> bool:
         elif string.lower() == 's':
             with open('statistic.txt', 'r') as s:
                 print(s.read())
+                print()
 
 
 def main():
