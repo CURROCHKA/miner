@@ -82,11 +82,12 @@ def failed_image(field: list, image: list) -> list:
 
 
 def show_image(image):
-    print()
+    print(' ', ' '.join('_' * len(image[0])))
 
     for i in image:
         print('|', ' '.join(i), '|')
 
+    print(' ', ' '.join('-' * len(image[0])))
     print()
 
 
@@ -153,14 +154,25 @@ def diff_custom() -> tuple:
             return num_of_rows, num_of_columns, mines_number
 
 
+def diff_loaded() -> tuple:
+    with open('field.txt', 'r') as f:
+        diff = f.read()
+    return tuple(diff)
+
+
 def difficult_lvl() -> tuple:
     easy = (3, 3, 3)
     medium = (5, 5, 7)
     hard = (7, 7, 18)
     difficult_input = ''
     difficult = ''
-    while difficult_input not in ['1', '2', '3', '4']:
-        difficult_input = input('Выберите уровень сложонсти:\neasy - 1;\nmedium - 2;\nhard - 3;\ncustom - 4\n')
+    while difficult_input not in ['1', '2', '3', '4', '5']:
+        difficult_input = input('Выберите уровень сложонсти:\n'
+                                'easy - 1;\n'
+                                'medium - 2;\n'
+                                'hard - 3;\n'
+                                'custom - 4;\n'
+                                'loaded - 5\n')
         if difficult_input == '1':
             difficult = easy
         elif difficult_input == '2':
@@ -169,6 +181,8 @@ def difficult_lvl() -> tuple:
             difficult = hard
         elif difficult_input == '4':
             difficult = diff_custom()
+        elif difficult_input == '5':
+            difficult = diff_loaded()
     return difficult
 
 
