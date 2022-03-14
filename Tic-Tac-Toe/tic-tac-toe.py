@@ -52,48 +52,21 @@ class TicTacToe:
             self.who = self.cross
 
     def victory_condition(self):
+        win_positions = [[self.settings.topleft_who, self.settings.top_who, self.settings.topright_who],
+                         [self.settings.topleft_who, self.settings.left_who, self.settings.bottomleft_who],
+                         [self.settings.topleft_who, self.settings.center_who, self.settings.bottomright_who],
+                         [self.settings.top_who, self.settings.center_who, self.settings.bottom_who],
+                         [self.settings.topright_who, self.settings.center_who, self.settings.bottomleft_who],
+                         [self.settings.right_who, self.settings.center_who, self.settings.left_who],
+                         [self.settings.bottomleft_who, self.settings.bottom_who, self.settings.bottomright_who]]
+        my_positions = []
 
-        if self.settings.topleft_who == self.who \
-                and self.settings.top_who == self.who \
-                and self.settings.topright_who == self.who:
-            sleep(5)
-            sys.exit()
-
-        if self.settings.topleft_who == self.who \
-                and self.settings.left_who == self.who \
-                and self.settings.bottomleft_who == self.who:
-            sleep(5)
-            sys.exit()
-
-        if self.settings.topleft_who == self.who \
-                and self.settings.center_who == self.who \
-                and self.settings.bottomright_who == self.who:
-            sleep(5)
-            sys.exit()
-
-        if self.settings.top_who == self.who \
-                and self.settings.center_who == self.who \
-                and self.settings.bottom_who == self.who:
-            sleep(5)
-            sys.exit()
-
-        if self.settings.topright_who == self.who \
-                and self.settings.center_who == self.who \
-                and self.settings.bottomleft_who == self.who:
-            sleep(5)
-            sys.exit()
-
-        if self.settings.right_who == self.who \
-                and self.settings.center_who == self.who \
-                and self.settings.left_who == self.who:
-            sleep(5)
-            sys.exit()
-
-        if self.settings.bottomleft_who == self.who \
-                and self.settings.bottom_who \
-                and self.settings.bottomright_who == self.who:
-            sleep(5)
-            sys.exit()
+        for positions in win_positions:
+            for position in positions:
+                if position == self.who:
+                    my_positions.append(position)
+                    if my_positions in win_positions:
+                        sys.exit()
 
     def check_events(self):
         for event in pygame.event.get():
