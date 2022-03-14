@@ -2,6 +2,7 @@ import sys
 from time import sleep
 from random import choice
 import pygame
+
 from settings import Settings
 from field import Field
 from buttons import Buttons
@@ -37,12 +38,10 @@ class TicTacToe:
             self.update_screen()
 
     def whose_move(self):
-
         if self.who == self.cross:
             self.who = self.zero
         else:
             self.who = self.cross
-        self.victory_condition()
 
     def victory_condition(self):
 
@@ -233,12 +232,10 @@ class TicTacToe:
         self.field.update()
         self.buttons.draw_button()
         self.buttons_update()
-        self.victory_condition()
 
         pygame.display.flip()
 
 
 if __name__ == '__main__':
-    # Создание экземпляра и запуск игры
     t_game = TicTacToe()
     t_game.run_game()
