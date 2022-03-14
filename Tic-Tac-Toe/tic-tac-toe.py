@@ -77,7 +77,6 @@ class TicTacToe:
                 self.check_mouse_events(mouse_pos)
 
     def check_mouse_events(self, mouse_pos):
-
         topleft_clicked = self.buttons['topleft_button'].button_rect.collidepoint(mouse_pos)
         top_clicked = self.buttons['top_button'].button_rect.collidepoint(mouse_pos)
         topright_clicked = self.buttons['topright_button'].button_rect.collidepoint(mouse_pos)

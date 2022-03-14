@@ -13,10 +13,9 @@ class Settings:
         self.button = pygame.Surface((125, 125))
         self.button_color = (255, 255, 255)
 
-        self.initialize_dynamic_settings()
 
-    def initialize_dynamic_settings(self):
-        """Инициализирует настройки, изменяющиеся в ходе игры."""
+
+
         self.topleft_active = True
         self.topleft_who = ''
 
