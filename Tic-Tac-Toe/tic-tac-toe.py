@@ -5,10 +5,9 @@ import pygame
 
 from settings import Settings
 from field import Field
-from buttons import Buttons
+from button import Button
 from zero import Zero
 from cross import Cross
-from game_stats import GameStats
 
 
 class TicTacToe:
@@ -27,8 +26,17 @@ class TicTacToe:
         self.cross = Cross(self)
         self.who = choice((self.zero, self.cross))
         self.field = Field(self)
-        self.buttons = Buttons(self)
-        self.stats = GameStats(self)
+
+        self.buttons = {'topleft_button': Button(self, 446, 205, 125, 125),
+                        'top_button': Button(self, 577, 205, 125, 125),
+                        'topright_button': Button(self, 705, 205, 125, 125),
+                        'left_button': Button(self, 446, 336, 125, 125),
+                        'center_button': Button(self, 577, 336, 125, 125),
+                        'right_button': Button(self, 705, 336, 125, 125),
+                        'bottomleft_button': Button(self, 446, 466, 125, 125),
+                        'bottom_button': Button(self, 577, 466, 125, 125),
+                        'bottomright_button': Button(self, 705, 466, 125, 125)
+                        }
 
     def run_game(self):
         """Основной цикл игры."""
@@ -45,47 +53,47 @@ class TicTacToe:
 
     def victory_condition(self):
 
-        if self.settings.topleft_who == self.who:
-            if self.settings.top_who == self.who:
-                if self.settings.topright_who == self.who:
-                    sleep(5)
-                    sys.exit()
+        if self.settings.topleft_who == self.who \
+                and self.settings.top_who == self.who \
+                and self.settings.topright_who == self.who:
+            sleep(5)
+            sys.exit()
 
-        if self.settings.topleft_who == self.who:
-            if self.settings.left_who == self.who:
-                if self.settings.bottomleft_who == self.who:
-                    sleep(5)
-                    sys.exit()
+        if self.settings.topleft_who == self.who \
+                and self.settings.left_who == self.who \
+                and self.settings.bottomleft_who == self.who:
+            sleep(5)
+            sys.exit()
 
-        if self.settings.topleft_who == self.who:
-            if self.settings.center_who == self.who:
-                if self.settings.bottomright_who == self.who:
-                    sleep(5)
-                    sys.exit()
+        if self.settings.topleft_who == self.who \
+                and self.settings.center_who == self.who \
+                and self.settings.bottomright_who == self.who:
+            sleep(5)
+            sys.exit()
 
-        if self.settings.top_who == self.who:
-            if self.settings.center_who == self.who:
-                if self.settings.bottom_who == self.who:
-                    sleep(5)
-                    sys.exit()
+        if self.settings.top_who == self.who \
+                and self.settings.center_who == self.who \
+                and self.settings.bottom_who == self.who:
+            sleep(5)
+            sys.exit()
 
-        if self.settings.topright_who == self.who:
-            if self.settings.center_who == self.who:
-                if self.settings.bottomleft_who == self.who:
-                    sleep(5)
-                    sys.exit()
+        if self.settings.topright_who == self.who \
+                and self.settings.center_who == self.who \
+                and self.settings.bottomleft_who == self.who:
+            sleep(5)
+            sys.exit()
 
-        if self.settings.right_who == self.who:
-            if self.settings.center_who == self.who:
-                if self.settings.left_who == self.who:
-                    sleep(5)
-                    sys.exit()
+        if self.settings.right_who == self.who \
+                and self.settings.center_who == self.who \
+                and self.settings.left_who == self.who:
+            sleep(5)
+            sys.exit()
 
-        if self.settings.bottomleft_who == self.who:
-            if self.settings.bottom_who:
-                if self.settings.bottomright_who == self.who:
-                    sleep(5)
-                    sys.exit()
+        if self.settings.bottomleft_who == self.who \
+                and self.settings.bottom_who \
+                and self.settings.bottomright_who == self.who:
+            sleep(5)
+            sys.exit()
 
     def check_events(self):
         for event in pygame.event.get():
@@ -97,15 +105,15 @@ class TicTacToe:
 
     def check_mouse_events(self, mouse_pos):
 
-        topleft_clicked = self.buttons.topleft_rect.collidepoint(mouse_pos)
-        center_clicked = self.buttons.center_rect.collidepoint(mouse_pos)
-        topright_clicked = self.buttons.topright_rect.collidepoint(mouse_pos)
-        top_clicked = self.buttons.top_rect.collidepoint(mouse_pos)
-        left_clicked = self.buttons.left_rect.collidepoint(mouse_pos)
-        bottomleft_clicked = self.buttons.bottomleft_rect.collidepoint(mouse_pos)
-        bottom_clicked = self.buttons.bottom_rect.collidepoint(mouse_pos)
-        bottomright_clicked = self.buttons.bottomright_rect.collidepoint(mouse_pos)
-        right_clicked = self.buttons.right_rect.collidepoint(mouse_pos)
+        topleft_clicked = self.buttons['topleft_button'].button_rect.collidepoint(mouse_pos)
+        top_clicked = self.buttons['top_button'].button_rect.collidepoint(mouse_pos)
+        topright_clicked = self.buttons['topright_button'].button_rect.collidepoint(mouse_pos)
+        left_clicked = self.buttons['left_button'].button_rect.collidepoint(mouse_pos)
+        center_clicked = self.buttons['center_button'].button_rect.collidepoint(mouse_pos)
+        right_clicked = self.buttons['right_button'].button_rect.collidepoint(mouse_pos)
+        bottomleft_clicked = self.buttons['bottomleft_button'].button_rect.collidepoint(mouse_pos)
+        bottom_clicked = self.buttons['bottom_button'].button_rect.collidepoint(mouse_pos)
+        bottomright_clicked = self.buttons['bottomright_button'].button_rect.collidepoint(mouse_pos)
 
         # Topleft button
         if topleft_clicked and self.settings.topleft_active:
@@ -166,71 +174,72 @@ class TicTacToe:
         # Topleft button
         if not self.settings.topleft_active:
             if self.settings.topleft_who == self.zero:
-                self.screen.blit(self.zero.image, self.buttons.topleft_rect)
+                self.screen.blit(self.zero.image, self.buttons['topleft_button'].button_rect)
             else:
-                self.screen.blit(self.cross.image, self.buttons.topleft_rect)
-
-        # Center button
-        if not self.settings.center_active:
-            if self.settings.center_who == self.zero:
-                self.screen.blit(self.zero.image, self.buttons.center_rect)
-            else:
-                self.screen.blit(self.cross.image, self.buttons.center_rect)
-
-        # Topright button
-        if not self.settings.topright_active:
-            if self.settings.topright_who == self.zero:
-                self.screen.blit(self.zero.image, self.buttons.topright_rect)
-            else:
-                self.screen.blit(self.cross.image, self.buttons.topright_rect)
+                self.screen.blit(self.cross.image, self.buttons['topleft_button'].button_rect)
 
         # Top button
         if not self.settings.top_active:
             if self.settings.top_who == self.zero:
-                self.screen.blit(self.zero.image, self.buttons.top_rect)
+                self.screen.blit(self.zero.image, self.buttons['top_button'].button_rect)
             else:
-                self.screen.blit(self.cross.image, self.buttons.top_rect)
+                self.screen.blit(self.cross.image, self.buttons['top_button'].button_rect)
+
+        # Topright button
+        if not self.settings.topright_active:
+            if self.settings.topright_who == self.zero:
+                self.screen.blit(self.zero.image, self.buttons['topright_button'].button_rect)
+            else:
+                self.screen.blit(self.cross.image, self.buttons['topright_button'].button_rect)
 
         # Left button
         if not self.settings.left_active:
             if self.settings.left_who == self.zero:
-                self.screen.blit(self.zero.image, self.buttons.left_rect)
+                self.screen.blit(self.zero.image, self.buttons['left_button'].button_rect)
             else:
-                self.screen.blit(self.cross.image, self.buttons.left_rect)
+                self.screen.blit(self.cross.image, self.buttons['left_button'].button_rect)
 
-        # Bottomleft button
-        if not self.settings.bottomleft_active:
-            if self.settings.bottomleft_who == self.zero:
-                self.screen.blit(self.zero.image, self.buttons.bottomleft_rect)
+        # Center button
+        if not self.settings.center_active:
+            if self.settings.center_who == self.zero:
+                self.screen.blit(self.zero.image, self.buttons['center_button'].button_rect)
             else:
-                self.screen.blit(self.cross.image, self.buttons.bottomleft_rect)
-
-        # Bottom button
-        if not self.settings.bottom_active:
-            if self.settings.bottom_who == self.zero:
-                self.screen.blit(self.zero.image, self.buttons.bottom_rect)
-            else:
-                self.screen.blit(self.cross.image, self.buttons.bottom_rect)
-
-        # Bottomright button
-        if not self.settings.bottomright_active:
-            if self.settings.bottomright_who == self.zero:
-                self.screen.blit(self.zero.image, self.buttons.bottomright_rect)
-            else:
-                self.screen.blit(self.cross.image, self.buttons.bottomright_rect)
+                self.screen.blit(self.cross.image, self.buttons['center_button'].button_rect)
 
         # Right button
         if not self.settings.right_active:
             if self.settings.right_who == self.zero:
-                self.screen.blit(self.zero.image, self.buttons.right_rect)
+                self.screen.blit(self.zero.image, self.buttons['right_button'].button_rect)
             else:
-                self.screen.blit(self.cross.image, self.buttons.right_rect)
+                self.screen.blit(self.cross.image, self.buttons['right_button'].button_rect)
+
+        # Bottomleft button
+        if not self.settings.bottomleft_active:
+            if self.settings.bottomleft_who == self.zero:
+                self.screen.blit(self.zero.image, self.buttons['bottomleft_button'].button_rect)
+            else:
+                self.screen.blit(self.cross.image, self.buttons['bottomleft_button'].button_rect)
+
+        # Bottom button
+        if not self.settings.bottom_active:
+            if self.settings.bottom_who == self.zero:
+                self.screen.blit(self.zero.image, self.buttons['bottom_button'].button_rect)
+            else:
+                self.screen.blit(self.cross.image, self.buttons['bottom_button'].button_rect)
+
+        # Bottomright button
+        if not self.settings.bottomright_active:
+            if self.settings.bottomright_who == self.zero:
+                self.screen.blit(self.zero.image, self.buttons['bottomright_button'].button_rect)
+            else:
+                self.screen.blit(self.cross.image, self.buttons['bottomright_button'].button_rect)
 
     def update_screen(self):
         """Обновляет изображения на экране и отображает новый экран."""
         self.screen.fill(self.settings.screen_color)
         self.field.update()
-        self.buttons.draw_button()
+        for button in self.buttons:
+            self.buttons[button].draw_button()
         self.buttons_update()
 
         pygame.display.flip()
