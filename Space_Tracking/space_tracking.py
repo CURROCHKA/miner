@@ -30,8 +30,16 @@ class StarShip:
         self.max_capacity = capacity
         self.current_capacity = self.max_capacity
 
-    def move(self, planet):
-        print(f'Movement from {self.location} to {planet}')
+    def distance(self, planet):
+        distance = round(((planet.coord[0] ** 2 - self.location.coord[0] ** 2) + (
+                    planet.coord[1] ** 2 - self.location.coord[1] ** 2)) ** 0.5)
+        return distance
+
+    def move_to_planet(self, planet):
+        if self.distance > self.tank.capacity:
+            print('Вы не можете полететь на эту планету, так как у вас не хватает топлива.')
+        elif self.distance <= self.tank.capacity:
+            pass
 
     def refuel(self):
         while self.location.stock.products['Топливо'][0] > 0:
@@ -66,18 +74,22 @@ class Stock:
         print(f'The price of {product} has risen by {price}')
 
 
+class Shop:
+    def __init__(self):
+        self.ships = [StarShip]
+        self.engines = [Engine]
+        self.tanks = [Tank]
+
+
 class Planet:
-    def __init__(self, name, planet_type):
+    def __init__(self, name: str, planet_type, x: int, y: int):
         self.name = name
         self.planet_type = planet_type
         self.stock = Stock()
+        self.coord = (x, y)
 
     def get_prices(self):
         prices = {}
         for i in self.stock.products:
             prices.update({i: self.stock.products[i][1]})
         return prices
-
-
-planet = Planet('Earth', 'asasqwq')
-print(planet.get_prices())
