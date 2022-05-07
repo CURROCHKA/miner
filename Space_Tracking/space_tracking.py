@@ -1,3 +1,27 @@
+from random import randint
+
+
+class Map:
+    def __init__(self):
+        x = 10
+        y = 10
+        self.map = [['.'] * x for i in range(y)]
+
+    def check_planet(self, pos_x, pos_y):
+        for i in range(-1, 2):
+            for j in range(-1, 2):
+                if 0 <= pos_x + i < len(self.map[0]) and 0 <= pos_y + j < len(self.map) and not (i == 0 and j == 0) and\
+                        self.map[pos_x + i][pos_y + j] != '.':
+                    return False
+        return True
+
+    def add_planet(self, planet):
+        while planet not in self.map:
+            pos_x, pos_y = randint(0, 10), randint(0, 10)
+            if self.map[pos_x][pos_y] == '.' and self.check_planet(pos_x, pos_y):
+                self.map[pos_x][pos_y] = planet
+
+
 class Player:
     def __init__(self, name=None):
         self.name = name
@@ -32,7 +56,7 @@ class StarShip:
 
     def distance(self, planet):
         distance = round(((planet.coord[0] ** 2 - self.location.coord[0] ** 2) + (
-                    planet.coord[1] ** 2 - self.location.coord[1] ** 2)) ** 0.5)
+                planet.coord[1] ** 2 - self.location.coord[1] ** 2)) ** 0.5)
         return distance
 
     def move_to_planet(self, planet):
@@ -45,7 +69,8 @@ class StarShip:
         while self.location.stock.products['Топливо'][0] > 0:
             request = int(input('Сколько топлива вам заправить?\n'))
             if request > self.location.stock.products['Топливо'][0]:
-                print(f"{request} топлива нет на складе. На складе {self.location.stock.products['Топливо'][0]} топлива.")
+                print(
+                    f"{request} топлива нет на складе. На складе {self.location.stock.products['Топливо'][0]} топлива.")
                 continue
             else:
                 self.location.stock.products['Топливо'][0] -= request
