@@ -3,23 +3,34 @@ from random import randint
 
 class Map:
     def __init__(self):
-        x = 10
-        y = 10
-        self.map = [['.'] * x for i in range(y)]
+        self.n = 10
+        self.m = 10
+        self.map = [['.'] * self.n for i in range(self.m)]
 
-    def check_planet(self, pos_x, pos_y):
+    def count_planet(self):
+        count = 0
+        for i in range(self.n):
+            for j in range(self.m):
+                if self.check_planet(i, j):
+                    count += 1
+        return count
+
+    def check_planet(self, x, y):
         for i in range(-1, 2):
             for j in range(-1, 2):
-                if 0 <= pos_x + i < len(self.map[0]) and 0 <= pos_y + j < len(self.map) and not (i == 0 and j == 0) and\
-                        self.map[pos_x + i][pos_y + j] != '.':
+                if 0 <= x + i < len(self.map[0]) and 0 <= y + j < len(self.map) and not (i == 0 and j == 0) and \
+                        self.map[x + i][y + j] != '.':
                     return False
         return True
 
     def add_planet(self, planet):
-        while planet not in self.map:
-            pos_x, pos_y = randint(0, 10), randint(0, 10)
-            if self.map[pos_x][pos_y] == '.' and self.check_planet(pos_x, pos_y):
-                self.map[pos_x][pos_y] = planet
+        if self.count_planet() > 1:
+            while planet not in [j for i in self.map for j in i]:
+                x, y = randint(0, self.n - 1), randint(0, self.m - 1)
+                if self.map[x][y] == '.' and self.check_planet(x, y):
+                    self.map[x][y] = planet
+                    planet.coord = (x, y)
+        return False
 
 
 class Player:
@@ -54,16 +65,19 @@ class StarShip:
         self.max_capacity = capacity
         self.current_capacity = self.max_capacity
 
-    def distance(self, planet):
-        distance = round(((planet.coord[0] ** 2 - self.location.coord[0] ** 2) + (
-                planet.coord[1] ** 2 - self.location.coord[1] ** 2)) ** 0.5)
+    def get_distance(self, planet):
+        distance = round(((planet.coord[0] - self.location.coord[0]) ** 2 + (
+                planet.coord[1] - self.location.coord[1]) ** 2) ** 0.5)
         return distance
 
     def move_to_planet(self, planet):
-        if self.distance > self.tank.capacity:
+        distance = self.get_distance(planet)
+        if distance > self.tank.capacity:
             print('Вы не можете полететь на эту планету, так как у вас не хватает топлива.')
-        elif self.distance <= self.tank.capacity:
-            pass
+        elif distance <= self.tank.capacity:
+            self.location = planet
+            self.tank.capacity -= distance // self.engine.power
+            print(f'Вы прибыли на планету {planet.name}')
 
     def refuel(self):
         while self.location.stock.products['Топливо'][0] > 0:
@@ -107,14 +121,27 @@ class Shop:
 
 
 class Planet:
-    def __init__(self, name: str, planet_type, x: int, y: int):
+    def __init__(self, name: str, planet_type):
         self.name = name
         self.planet_type = planet_type
         self.stock = Stock()
-        self.coord = (x, y)
+        self.coord = None
 
     def get_prices(self):
         prices = {}
         for i in self.stock.products:
             prices.update({i: self.stock.products[i][1]})
         return prices
+
+
+map_ = Map()
+planet_1 = Planet('Auropa', 'None')
+planet_2 = Planet('Earth', 'None')
+map_.add_planet(planet_1)
+map_.add_planet(planet_2)
+engine = Engine(1, 50)
+tank = Tank(100, 50)
+player = Player('Ivan')
+star_ship = StarShip('Buran', 100, planet_1, engine, tank, player)
+star_ship.move_to_planet(planet_2)
+
