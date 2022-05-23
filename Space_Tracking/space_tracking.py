@@ -1,5 +1,8 @@
+from random import randint
+
+
 class Player:
-    def __init__(self, name):
+    def __init__(self, name: str):
         self.name = name
         self.money = 2000
         self.ships = []
@@ -29,14 +32,14 @@ class StarShip:
         self.max_capacity = capacity
         self.current_capacity = self.max_capacity
 
-    def __get_distance(self, planet):
+    def get_distance(self, planet) -> int:
         distance = round(((planet.coord[0] - self.location.coord[0]) ** 2 + (
                 planet.coord[1] - self.location.coord[1]) ** 2) ** 0.5)
         return distance
 
     def move_to_planet(self, planet):
         if planet != self.location:
-            distance = self.__get_distance(planet)
+            distance = self.get_distance(planet)
             if distance > self.tank.capacity:
                 print('Вы не можете полететь на эту планету, так как у вас не хватает топлива.')
             elif distance <= self.tank.capacity:
@@ -72,10 +75,10 @@ class Stock:
                          'Предметы роскоши': [0, 0]
                          }  # (0 - кол-во, 0 - цена)
 
-    def increase_products(self, product, quantity):
+    def increase_products(self, product: str, quantity: int):
         self.products[product][0] += quantity
 
-    def new_price(self, product, price):
+    def new_price(self, product: str, price: int):
         self.products[product][1] = price
 
 
@@ -87,22 +90,50 @@ class Shop:
 
 
 class Planet:
-    def __init__(self, name: str, planet_type: str, coord):
+    def __init__(self, name: str, planet_type: str):
         self.name = name
         self.planet_type = planet_type
         self.stock = Stock()
         self.shop = Shop()
-        self.coord = coord
+        self.coord = self.__generate_coord()
 
-    def get_prices(self):
+    def __count_freespace(self) -> int:
+        count = 0
+        for i in range(10):
+            for j in range(10):
+                if not self.__check_planets(i, j):
+                    count += 1
+        return count
+
+    def __check_planets(self, x: int, y: int) -> bool:
+        for i in range(-1, 2):
+            for j in range(-1, 2):
+                if 0 <= x + i < 10 and 0 <= y + j < 10 and not (i == 0 and j == 0) \
+                        and [x + i, y + j] in planets_coord:
+                    return True
+        return False
+
+    def __generate_coord(self) -> tuple:
+        if self.__count_freespace() > 1:
+            while True:
+                x, y = randint(0, 9), randint(0, 9)
+                if [x, y] in planets_coord:
+                    continue
+                if not self.__check_planets(x, y):
+                    planets_coord.append([x, y])
+                    return x, y
+
+    def get_prices(self) -> dict:
         prices = {}
         for i in self.stock.products:
             prices.update({i: self.stock.products[i][1]})
         return prices
 
 
-planet1 = Planet('Auropa', 'None', (4, 3))
-planet2 = Planet('Earth', 'None', (1, 0))
+planets_coord = []
+planet1 = Planet('Auropa', 'None')
+planet2 = Planet('Earth', 'None')
+planet3 = Planet('Mars', 'None')
 player = Player('Ivan')
 engine = Engine(1, 50)
 tank = Tank(100, 50)
