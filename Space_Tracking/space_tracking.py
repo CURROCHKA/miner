@@ -1,46 +1,50 @@
 from random import randint
 
-N, M = 10, 10
+ROWS = 10  # Кол-во строк
+COLUMNS = 10  # Кол-во столбцов
 
 
 class Player:
     def __init__(self, name: str):
         self.name = name
-        self.money = 2000
+        self.money = 2000000
 
     def buy_ship(self, ship, planet):
         pass
 
 
 class Engine:
-    def __init__(self, power=None, weight=None):
+    def __init__(self, power: int, weight: int):
         self.power = power
         self.weight = weight
 
 
 class Tank:
-    def __init__(self, capacity=None, weight=None):
+    def __init__(self, capacity: int, weight: int):
         self.capacity = capacity
-        self.fuel = self.capacity
+        self.fuel = 0
         self.weight = weight
 
 
 class StarShip:
-    def __init__(self, name: str, capacity: int, location, engine=Engine(), tank=Tank()):
+    def __init__(self, name: str, capacity: int, location, engine, tank):
         self.name = name
         self.location = location
         self.engine = engine
         self.tank = tank
         self.capacity = capacity
-        self.compartment = {'Минералы': 0,
-                            'Медикаменты': 0,
-                            'Еда': 0,
-                            'Материалы': 0,
-                            'Бытовая техника': 0,
-                            'Промышленная техника': 0,
-                            'Предметы роскоши': 0
-                            }
-        self.current_capacity = sum([self.compartment[i] for i in self.compartment])
+        self.cargo = {'Minerals': 0,
+                      'Medicines': 0,
+                      'Food': 0,
+                      'Materials': 0,
+                      'Appliances': 0,
+                      'Technic': 0,
+                      'Luxuries': 0
+                      }
+
+    @property
+    def current_capacity(self) -> int:
+        return sum([self.cargo.values()])
 
     def get_distance(self, planet) -> int:
         distance = round(((planet.coord[0] - self.location.coord[0]) ** 2 + (
@@ -50,9 +54,9 @@ class StarShip:
     def move_to_planet(self, planet):
         if planet != self.location:
             distance = self.get_distance(planet)
-            if distance > self.tank.capacity:
+            if distance * self.engine.power > self.tank.fuel:
                 print('Вы не можете полететь на эту планету, так как у вас не хватает топлива.')
-            elif distance <= self.tank.capacity:
+            elif distance * self.engine.power <= self.tank.fuel:
                 self.location = planet
                 self.tank.fuel -= distance * self.engine.power
                 print(f'Вы прибыли на планету {planet.name}')
@@ -61,29 +65,29 @@ class StarShip:
 
     def refuel(self, fuel: int):
         if type(fuel) is int:
-            if fuel * self.location.stock.products['Топливо'][1] <= player.money:
-                if fuel > 0:
-                    if fuel > self.location.stock.products['Топливо'][0]:
-                        print(
-                            f"{fuel} топлива нет на складе. На складе {self.location.stock.products['Топливо'][0]} "
-                            f"топлива."
-                        )
-                    else:
+            if fuel > 0:
+                if fuel * self.location.stock.products['Fuel'][1] <= player.money:
+                    if fuel <= self.location.stock.products['Fuel'][0]:
                         if fuel + self.tank.fuel > self.tank.capacity:
                             self.tank.fuel += self.tank.capacity - self.tank.fuel
                         else:
                             self.tank.fuel += fuel
-                        self.location.stock.products['Топливо'][0] -= fuel
-                        player.money -= self.location.stock.products['Топливо'][1] * fuel
+                        self.location.stock.products['Fuel'][0] -= fuel
+                        player.money -= self.location.stock.products['Fuel'][1] * fuel
+                    else:
+                        print(
+                            f"{fuel} топлива нет на складе. На складе {self.location.stock.products['Fuel'][0]} "
+                            f"топлива."
+                        )
                 else:
-                    print('Введите положительное значение.')
+                    print(f'У вас не хватает денег, чтобы заправить {fuel} топлива.')
             else:
-                print(f'У вас не хватает денег, чтобы заправить {fuel} топлива.')
+                print('Введите положительное значение.')
         else:
             print('Введите числовое значение.')
 
     def buy(self, product: str, amount: int):
-        if product.title() in self.compartment:
+        if product.title() in self.cargo:
             product = product.title()
             if type(amount) is int:
                 if amount > 0:
@@ -91,7 +95,7 @@ class StarShip:
                         if self.location.stock.products[product][0] >= amount:
                             if player.money >= self.location.stock.products[product][1] * amount:
                                 self.location.stock.products[product][0] -= amount
-                                self.compartment[product] += amount
+                                self.cargo[product] += amount
                                 player.money -= self.location.stock.products[product][1] * amount
                             else:
                                 print(f'У вас не хватает денег, чтобы купить {amount} {product.lower()}.')
@@ -108,16 +112,16 @@ class StarShip:
             print('Такого продукта нет.')
 
     def sale(self, product: str, amount: int):
-        if product.title() in self.compartment:
+        if product.title() in self.cargo:
             product = product.title()
             if type(amount) is int:
                 if amount > 0:
-                    if self.compartment[product] >= amount:
-                        self.compartment[product] -= amount
+                    if self.cargo[product] >= amount:
+                        self.cargo[product] -= amount
                         self.location.stock.products[product][0] += amount
                         player.money += self.location.stock.products[product][1] * amount
                     else:
-                        print(f'У вас есть только {self.compartment[product]} {product.lower()}')
+                        print(f'У вас есть только {self.cargo[product]} {product.lower()}')
                 else:
                     print('Введите положительное значение.')
             else:
@@ -128,14 +132,14 @@ class StarShip:
 
 class Stock:
     def __init__(self):
-        self.products = {'Еда': [100, 10],
-                         'Минералы': [1000, 20],
-                         'Медикаменты': [100, 30],
-                         'Материалы': [100, 100],
-                         'Топливо': [1000, 10],
-                         'Бытовая техника': [100, 50],
-                         'Промышленная техника': [100, 80],
-                         'Предметы роскоши': [100, 100]
+        self.products = {'Food': [100, 10],
+                         'Minerals': [1000, 20],
+                         'Medicines': [100, 30],
+                         'Materials': [100, 100],
+                         'Fuel': [1000, 10],
+                         'Appliances': [100, 50],
+                         'Technic': [100, 80],
+                         'Luxuries': [100, 100]
                          }  # (0 - кол-во, 0 - цена)
 
     def increase_products(self, product: str, quantity: int):
@@ -160,31 +164,21 @@ class Planet:
         self.shop = Shop()
         self.coord = self.__generate_coord()
 
-    def __count_freespace(self) -> int:
+    def __count_planets(self) -> int:
         count = 0
-        for i in range(N):
-            for j in range(M):
-                if not self.__check_planets(i, j):
+        for i in range(ROWS):
+            for j in range(COLUMNS):
+                if [i, j] not in planets_coord:
                     count += 1
         return count
 
-    def __check_planets(self, x: int, y: int) -> bool:
-        for i in range(-1, 2):
-            for j in range(-1, 2):
-                if 0 <= x + i < N and 0 <= y + j < M and not (i == 0 and j == 0) \
-                        and [x + i, y + j] in planets_coord:
-                    return True
-        return False
-
     def __generate_coord(self) -> tuple:
-        if self.__count_freespace() > 1:
-            while True:
-                x, y = randint(0, N - 1), randint(0, M - 1)
-                if [x, y] in planets_coord:
-                    continue
-                if not self.__check_planets(x, y):
-                    planets_coord.append([x, y])
-                    return x, y
+        while self.__count_planets() <= ROWS * COLUMNS:
+            x, y = randint(0, ROWS - 1), randint(0, COLUMNS - 1)
+            if [x, y] in planets_coord:
+                continue
+            planets_coord.append([x, y])
+            return x, y
 
     def get_prices(self) -> dict:
         prices = {}
@@ -198,25 +192,32 @@ planet1 = Planet('Auropa', 'None')
 planet2 = Planet('Earth', 'None')
 planet3 = Planet('Mars', 'None')
 player = Player('Ivan')
-engine = Engine(1, 50)
+engine = Engine(2, 50)
 tank = Tank(100, 50)
 star_ship = StarShip('Buran', 100, planet2, engine, tank)
 print(star_ship.tank.fuel, 'Топливо')
+print(player.money)
+print(planet2.stock.products['Fuel'], 'Топливо на складе')
+star_ship.refuel(1000)
+print(player.money)
+print(planet2.stock.products['Fuel'], 'Топливо на складе')
+print(star_ship.tank.fuel, 'Топливо')
+print(star_ship.get_distance(planet1), 'Расстояние')
 star_ship.move_to_planet(planet1)
 print(star_ship.tank.fuel, 'Топливо после перелёта на др. планету')
 star_ship.refuel(10)
 print(star_ship.tank.fuel, 'Топливо после заправки')
-print(planet1.stock.products['Топливо'], 'Топливо на складе')
-print(planet1.stock.products['Еда'], 'Еда на складе')
+print(planet1.stock.products['Fuel'], 'Топливо на складе')
+print(planet1.stock.products['Food'], 'Еда на складе')
 print(player.money, 'Деньги игрока')
-print(star_ship.compartment['Еда'], 'Еда у игрока')
-star_ship.buy('еда', 10)
+print(star_ship.cargo['Food'], 'Еда у игрока')
+star_ship.buy('food', 10)
 print('Купил еду')
 print(player.money, 'Деньги игрока после покупки еды')
-print(planet1.stock.products['Еда'], 'Еда на складе после покупки')
-print(star_ship.compartment['Еда'], 'Еда у игрока после покупки')
-star_ship.sale('еда', 1)
+print(planet1.stock.products['Food'], 'Еда на складе после покупки')
+print(star_ship.cargo['Food'], 'Еда у игрока после покупки')
+star_ship.sale('food', 1)
 print('Продал еду')
-print(planet1.stock.products['Еда'], 'Еда на складе после продажи')
-print(star_ship.compartment['Еда'], 'Еда у игрока после продажи')
+print(planet1.stock.products['Food'], 'Еда на складе после продажи')
+print(star_ship.cargo['Food'], 'Еда у игрока после продажи')
 print(player.money, 'Деньги игрока после продажи еды')
