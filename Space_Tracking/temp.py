@@ -18,7 +18,7 @@ def __check_planets(self, x: int, y: int) -> bool:
 '''
 
 
-def correct_number(number):
+'''def correct_number(number):
     count = 0
     if type(number) is str or type(number) is int:
         number = str(number)
@@ -42,5 +42,5 @@ def correct_number(number):
         return '+7' + ' ' + number[1:4] + '-' + number[4:7] + '-' + number[7:9] + '-' + number[9:11]
 
 
-print(correct_number('+79157420013%@%&*^!(^!)%(^!'))
+print(correct_number('+79157420013%@%&*^!(^!)%(^!'))'''
 
