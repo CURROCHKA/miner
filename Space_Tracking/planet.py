@@ -1,9 +1,9 @@
 from random import randint
-from space_tracking_main import planets_coord
 
 
 HEIGHT = 10
 WIDTH = 10
+planets_coord = []
 
 
 class Stock:

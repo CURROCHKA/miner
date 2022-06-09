@@ -1,21 +1,11 @@
 from star_ship import *
 from planet import *
+from player import player
 
 
-class Player:
-    def __init__(self, name: str):
-        self.name = name
-        self.money = 2000000
-
-    def buy_ship(self, ship, planet):
-        pass
-
-
-planets_coord = []
 planet1 = Planet('Auropa', 'None')
 planet2 = Planet('Earth', 'None')
 planet3 = Planet('Mars', 'None')
-player = Player('Ivan')
 engine = Engine(2, 50)
 tank = Tank(100, 50)
 star_ship = StarShip('Buran', 100, planet2, engine, tank)

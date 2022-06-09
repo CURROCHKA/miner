@@ -1,4 +1,4 @@
-from space_tracking_main import player
+from player import player
 
 HEIGHT = 10
 WIDTH = 10
@@ -54,17 +54,14 @@ class StarShip:
         else:
             print('Вы уже находитесь на этой планете.')
 
-    def __is_valid_fuel(self, fuel: int) -> bool:
-        if type(fuel) is int:
-            if fuel > 0:
-                return True
-            else:
-                print('Введите положительное значение.')
+    def is_valid_fuel(self, fuel: int) -> bool:
+        if type(fuel) is int and fuel > 0:
+            return True
         else:
-            print('Введите числовое значение.')
+            print('Введите числовое положительное значение.')
         return False
 
-    def __is_possible_refuel(self, fuel: int) -> bool:
+    def is_possible_refuel(self, fuel: int) -> bool:
         if fuel * self.location.stock.products['fuel'][1] <= player.money:
             if fuel <= self.location.stock.products['fuel'][0]:
                 return True
@@ -78,7 +75,7 @@ class StarShip:
         return False
 
     def refuel(self, fuel: int):
-        if self.__is_valid_fuel(fuel) and self.__is_possible_refuel(fuel):
+        if self.is_valid_fuel(fuel) and self.is_possible_refuel(fuel):
             if fuel + self.tank.fuel > self.tank.capacity:
                 player.money -= (self.tank.capacity - self.tank.fuel) * self.location.stock.products['fuel'][1]
                 self.location.stock.products['fuel'][0] -= self.tank.capacity - self.tank.fuel
@@ -88,20 +85,17 @@ class StarShip:
                 self.location.stock.products['fuel'][0] -= fuel
                 self.tank.fuel += fuel
 
-    def __is_valid_product_b(self, product: str, amount: int) -> bool:
+    def is_valid_product_b(self, product: str, amount: int) -> bool:
         if product in self.cargo:
-            if type(amount) is int:
-                if amount > 0:
-                    return True
-                else:
-                    print('Введите положительное значение.')
+            if type(amount) is int and amount > 0:
+                return True
             else:
-                print('Введите числовое значение.')
+                print('Введите числовое положительное значение.')
         else:
             print('Такого продукта нет.')
         return False
 
-    def __is_possible_buy(self, product: str, amount: int) -> bool:
+    def is_possible_buy(self, product: str, amount: int) -> bool:
         if self.location.stock.products[product][0] >= amount:
             if player.money >= self.location.stock.products[product][1] * amount:
                 return True
@@ -113,7 +107,7 @@ class StarShip:
         return False
 
     def buy(self, product: str, amount: int):
-        if self.__is_valid_product_b(product, amount) and self.__is_possible_buy(product, amount):
+        if self.is_valid_product_b(product, amount) and self.is_possible_buy(product, amount):
             if self.current_capacity + amount > self.capacity:
                 player.money -= (self.capacity - self.current_capacity) * self.location.stock.products[product][1]
                 self.location.stock.products[product][0] -= self.capacity - self.current_capacity
@@ -123,25 +117,21 @@ class StarShip:
                 self.location.stock.products[product][0] -= amount
                 self.cargo[product] += amount
 
-    def __is_valid_product_s(self, product: str, amount: int) -> bool:
+    def is_valid_product_s(self, product: str, amount: int) -> bool:
         if product in self.cargo:
-            if type(amount) is int:
-                if amount > 0:
-                    return True
-                else:
-                    print('Введите положительное значение.')
+            if type(amount) is int and amount > 0:
+                return True
             else:
-                print('Введите числовое значение.')
+                print('Введите числовое положительное значение.')
         else:
             print('Такого продукта нет.')
         return False
 
     def sale(self, product: str, amount: int):
-        if self.__is_valid_product_s(product, amount):
+        if self.is_valid_product_s(product, amount):
             if self.cargo[product] >= amount:
                 self.cargo[product] -= amount
                 self.location.stock.products[product][0] += amount
                 player.money += self.location.stock.products[product][1] * amount
             else:
                 print(f'У вас есть только {self.cargo[product]} {product.lower()}')
-                
