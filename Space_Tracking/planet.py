@@ -18,6 +18,13 @@ class Stock:
                          'luxuries': [100, 100]
                          }  # (0 - кол-во, 0 - цена)
 
+    def product_list(self):
+        for i, j in enumerate(self.products):
+            if j != 'fuel':
+                print(f'{i + 1}. {j.title()}: {self.products[j][0]} - штук, '
+                      f'{self.products[j][1]} - цена за 1 штуку.')
+        print()
+
     def increase_products(self, product: str, quantity: int):
         self.products[product][0] += quantity
 
@@ -38,7 +45,7 @@ class Planet:
         self.planet_type = planet_type
         self.stock = Stock()
         self.shop = Shop()
-        self.coord = self.__generate_coord()
+        self.coord = self.generate_coord()
 
     def __count_planets(self) -> int:
         count = 0
@@ -48,7 +55,7 @@ class Planet:
                     count += 1
         return count
 
-    def __generate_coord(self) -> tuple:
+    def generate_coord(self) -> tuple:
         while self.__count_planets() <= HEIGHT * WIDTH:
             x, y = randint(0, HEIGHT - 1), randint(0, WIDTH - 1)
             if [x, y] in planets_coord:
@@ -56,8 +63,3 @@ class Planet:
             planets_coord.append([x, y])
             return x, y
 
-    def get_prices(self) -> dict:
-        prices = {}
-        for i in self.stock.products:
-            prices.update({i: self.stock.products[i][1]})
-        return prices

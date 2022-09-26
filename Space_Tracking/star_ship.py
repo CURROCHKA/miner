@@ -1,7 +1,24 @@
+import json
 from player import player
 
 HEIGHT = 10
 WIDTH = 10
+
+
+def read_file():
+    with open('game_info.json') as g_i:
+        data = json.load(g_i)
+    return data
+
+
+def change_file(*key, value):
+    data = read_file()
+    if len(key) == 1:
+        data[key[0]] = value
+    else:
+        data[key[0]][key[1]] = value
+    with open('game_info.json', 'w') as g_i:
+        json.dump(data, g_i)
 
 
 class Engine:
@@ -33,6 +50,10 @@ class StarShip:
                       'luxuries': 0
                       }
 
+    def number_of_products(self):
+        for i in self.cargo:
+            print(f'{i.title()}: {self.cargo[i]}')
+
     @property
     def current_capacity(self) -> int:
         return sum(self.cargo.values())
@@ -49,13 +70,14 @@ class StarShip:
                 print('Вы не можете полететь на эту планету, так как у вас не хватает топлива.')
             elif distance * self.engine.power <= self.tank.fuel:
                 self.location = planet
+                change_file('location', value=planet.name)
                 self.tank.fuel -= distance * self.engine.power
                 print(f'Вы прибыли на планету {planet.name}')
         else:
             print('Вы уже находитесь на этой планете.')
 
     def is_valid_fuel(self, fuel: int) -> bool:
-        if type(fuel) is int and fuel > 0:
+        if type(fuel) is int and fuel >= 0:
             return True
         else:
             print('Введите числовое положительное значение.')
@@ -67,7 +89,7 @@ class StarShip:
                 return True
             else:
                 print(
-                    f"{fuel} топлива нет на складе. На складе {self.location.stock.products['Fuel'][0]} "
+                    f"{fuel} топлива нет на складе. На складе {self.location.stock.products['fuel'][0]} "
                     f"топлива."
                 )
         else:
@@ -79,15 +101,25 @@ class StarShip:
             if fuel + self.tank.fuel > self.tank.capacity:
                 player.money -= (self.tank.capacity - self.tank.fuel) * self.location.stock.products['fuel'][1]
                 self.location.stock.products['fuel'][0] -= self.tank.capacity - self.tank.fuel
+                print(f'Вы заправили {self.tank.capacity - self.tank.fuel} топлива за '
+                      f'{(self.tank.capacity - self.tank.fuel) * self.location.stock.products["fuel"][1]} кредитов')
                 self.tank.fuel += self.tank.capacity - self.tank.fuel
+                change_file('star_ship_fuel', value=self.tank.fuel)
+                change_file('money', value=player.money)
+                return True
             else:
                 player.money -= self.location.stock.products['fuel'][1] * fuel
                 self.location.stock.products['fuel'][0] -= fuel
                 self.tank.fuel += fuel
+                change_file('star_ship_fuel', value=self.tank.fuel)
+                change_file('money', value=player.money)
+                print(f'Вы заправили {fuel} топлива за {self.location.stock.products["fuel"][1] * fuel} кредитов')
+                return True
+        return False
 
     def is_valid_product_b(self, product: str, amount: int) -> bool:
         if product in self.cargo:
-            if type(amount) is int and amount > 0:
+            if type(amount) is int and amount >= 0:
                 return True
             else:
                 print('Введите числовое положительное значение.')
@@ -111,15 +143,25 @@ class StarShip:
             if self.current_capacity + amount > self.capacity:
                 player.money -= (self.capacity - self.current_capacity) * self.location.stock.products[product][1]
                 self.location.stock.products[product][0] -= self.capacity - self.current_capacity
-                self.cargo += self.capacity - self.current_capacity
+                self.cargo[product] += self.capacity - self.current_capacity
+                print(f'Вы купили {self.capacity - self.current_capacity} {product} за '
+                      f'{(self.capacity - self.current_capacity) * self.location.stock.products[product][1]}')
+                change_file('cargo', product, value=self.cargo[product])
+                change_file('money', value=player.money)
+                return True
             else:
                 player.money -= self.location.stock.products[product][1] * amount
                 self.location.stock.products[product][0] -= amount
                 self.cargo[product] += amount
+                print(f'Вы купили {amount} {product} за {self.location.stock.products[product][1] * amount}')
+                change_file('cargo', product, value=self.cargo[product])
+                change_file('money', value=player.money)
+                return True
+        return False
 
     def is_valid_product_s(self, product: str, amount: int) -> bool:
         if product in self.cargo:
-            if type(amount) is int and amount > 0:
+            if type(amount) is int and amount >= 0:
                 return True
             else:
                 print('Введите числовое положительное значение.')
@@ -133,5 +175,10 @@ class StarShip:
                 self.cargo[product] -= amount
                 self.location.stock.products[product][0] += amount
                 player.money += self.location.stock.products[product][1] * amount
+                change_file('cargo', product, value=self.cargo[product])
+                change_file('money', value=player.money)
+                print(f'Вы продали {amount} {product} за {self.location.stock.products[product][1] * amount} кредитов.')
+                return True
             else:
                 print(f'У вас есть только {self.cargo[product]} {product.lower()}')
+        return False
