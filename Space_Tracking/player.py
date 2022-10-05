@@ -6,5 +6,3 @@ class Player:
     def buy_ship(self, ship, planet):
         pass
 
-
-player = Player(input('Введите ваше имя: '))

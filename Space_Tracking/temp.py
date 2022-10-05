@@ -43,4 +43,3 @@ def __check_planets(self, x: int, y: int) -> bool:
 
 
 print(correct_number('+79157420013%@%&*^!(^!)%(^!'))'''
-

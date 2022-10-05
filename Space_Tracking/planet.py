@@ -33,8 +33,8 @@ class Shop:
 
 
 class Planet:
-    def __init__(self, name: str, planet_type: str):
-        self.name = name
+    def __init__(self, id: str, planet_type: str):
+        self.id = id
         self.planet_type = planet_type
         self.stock = Stock()
         self.shop = Shop()
