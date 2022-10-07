@@ -54,7 +54,8 @@ class StarShip:
         else:
             print('Вы уже находитесь на этой планете.')
 
-    def is_valid_fuel(self, fuel: int) -> bool:
+    @staticmethod
+    def is_valid_fuel(fuel: int) -> bool:
         if type(fuel) is int and fuel > 0:
             return True
         else:

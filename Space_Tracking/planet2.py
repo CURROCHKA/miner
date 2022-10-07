@@ -1,5 +1,4 @@
 from random import randint
-from product import Product
 
 
 HEIGHT = 10
@@ -19,6 +18,15 @@ class Planet:
     def __init__(self, name: str):
         self.name = name
         self.coord = generate_coord()
+        self.stock = Stock()
+        self.shop = Shop()
+
+
+class Product:
+    def __init__(self, title: str):
+        self.title = title
+        self.price = 0
+        self.amount = 0
 
 
 class Stock:
@@ -31,11 +39,20 @@ class Stock:
         def __init__(self, stock):
             self.stock = stock
 
-        def update_price(self, product, price):
-            self.stock.products[product].price = price
+        def update_price(self, product_name: str, price: int):
+            self.get_product(product_name).price = price
 
-        def update_amount(self, product, amount):
-            self.stock.products[product].amount = amount
+        def update_amount(self, product_name: str, amount: int):
+            self.get_product(product_name).amount = amount
+
+        def get_product(self, product_name: str):
+            return [product for product in self.stock.products if product.title == product_name][0]
+
+        # def get_amount_product(self, product_name: str):
+        #     return self.get_product(product_name).amount
+        #
+        # def get_price_product(self, product_name: str):
+        #     return self.get_product(product_name).price
 
 
 class Shop:
@@ -43,4 +60,3 @@ class Shop:
         self.tanks = []
         self.engines = []
         self.ships = []
-

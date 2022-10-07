@@ -40,7 +40,8 @@ class Planet:
         self.shop = Shop()
         self.coord = self.__generate_coord()
 
-    def __count_planets(self) -> int:
+    @staticmethod
+    def __count_planets() -> int:
         count = 0
         for i in range(HEIGHT):
             for j in range(WIDTH):
