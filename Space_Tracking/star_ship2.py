@@ -5,6 +5,7 @@ from planet2 import Planet, Product
 class Engine:
     def __init__(self, speed: int):
         self.speed = speed
+        # self.battery = 0
 
 
 class Tank:
@@ -53,7 +54,7 @@ class StarShip:
             return False
 
         def is_possible_refuel(self, fuel: int) -> bool:
-            if self.location.stock.system.get_product().amount >= fuel:
+            if self.location.stock.system.get_product('fuel').amount >= fuel:
                 return True
             return False
 
