@@ -4,89 +4,89 @@ from random import choice
 import pygame
 from settings import Settings
 from field import Field
-from buttons import Buttons
+from button import Button
 from zero import Zero
 from cross import Cross
-from game_stats import GameStats
+from bot import Bot
+from message import Message
 
 
 class TicTacToe:
     """Основной класс игры."""
-
     def __init__(self):
         pygame.init()
         self.settings = Settings()
-        # Экран
         self.screen = pygame.display.set_mode((1280, 800))
         self.screen_width = self.settings.screen_width
         self.screen_height = self.settings.screen_height
         pygame.display.set_caption('Tic-Tac_Toe')
-
         self.zero = Zero(self)
         self.cross = Cross(self)
         self.who = choice((self.zero, self.cross))
         self.field = Field(self)
-        self.buttons = Buttons(self)
-        self.stats = GameStats(self)
+        self.buttons = {
+            'topleft': pygame.Rect(446, 205, 125, 125),
+            'top': pygame.Rect(577, 205, 125, 125),
+            'topright': pygame.Rect(705, 205, 125, 125),
+            'left': pygame.Rect(446, 336, 125, 125),
+            'center': pygame.Rect(577, 336, 125, 125),
+            'right': pygame.Rect(705, 336, 125, 125),
+            'bottomleft': pygame.Rect(446, 466, 125, 125),
+            'bottom': pygame.Rect(577, 466, 125, 125),
+            'bottomright': pygame.Rect(705, 466, 125, 125)
+        }
+        self.buttons = [Button(self, button, self.buttons[button]) for button in self.buttons]
+        self.bot = Bot(self)
 
     def run_game(self):
         """Основной цикл игры."""
-        while True:
+        while self.check_field():
             self.check_events()
-            self.victory_condition()
             self.update_screen()
 
-    def whose_move(self):
+    def check_field(self):
+        empty_buttons = [button for button in self.buttons if button.status]
+        if empty_buttons:
+            return True
+        return False
 
+    def whose_move(self):
+        self.update_screen()
+        self.victory_condition()
         if self.who == self.cross:
             self.who = self.zero
         else:
             self.who = self.cross
-        self.victory_condition()
+        if self.who == self.bot.who:
+            self.bot.make_move()
+            self.who = self.cross if self.who == self.zero else self.zero
 
     def victory_condition(self):
+        win_pos = (('topleft', 'top', 'topright'),
+                   ('left', 'center', 'right'),
+                   ('bottomleft', 'bottom', 'bottomright'),
+                   ('topleft', 'left', 'bottomleft'),
+                   ('top', 'center', 'bottom'),
+                   ('topright', 'right', 'bottomright'),
+                   ('topleft', 'center', 'bottomright'),
+                   ('topright', 'center', 'bottomleft'),)
 
-        if self.settings.topleft_who == self.who:
-            if self.settings.top_who == self.who:
-                if self.settings.topright_who == self.who:
-                    sleep(5)
-                    sys.exit()
+        for pos in win_pos:
+            if [True for button in self.buttons if button.name == pos[0] and button.who == self.who] and \
+                    [True for button in self.buttons if button.name == pos[1] and button.who == self.who] and \
+                    [True for button in self.buttons if button.name == pos[2] and button.who == self.who]:
+                self.who_win()
+                sleep(1)
+                sys.exit()
 
-        if self.settings.topleft_who == self.who:
-            if self.settings.left_who == self.who:
-                if self.settings.bottomleft_who == self.who:
-                    sleep(5)
-                    sys.exit()
-
-        if self.settings.topleft_who == self.who:
-            if self.settings.center_who == self.who:
-                if self.settings.bottomright_who == self.who:
-                    sleep(5)
-                    sys.exit()
-
-        if self.settings.top_who == self.who:
-            if self.settings.center_who == self.who:
-                if self.settings.bottom_who == self.who:
-                    sleep(5)
-                    sys.exit()
-
-        if self.settings.topright_who == self.who:
-            if self.settings.center_who == self.who:
-                if self.settings.bottomleft_who == self.who:
-                    sleep(5)
-                    sys.exit()
-
-        if self.settings.right_who == self.who:
-            if self.settings.center_who == self.who:
-                if self.settings.left_who == self.who:
-                    sleep(5)
-                    sys.exit()
-
-        if self.settings.bottomleft_who == self.who:
-            if self.settings.bottom_who:
-                if self.settings.bottomright_who == self.who:
-                    sleep(5)
-                    sys.exit()
+    def who_win(self):
+        if self.who is self.zero:
+            message = Message(self, 'Выиграл Нолик!')
+            print('Выиграл Нолик!')
+        else:
+            message = Message(self, 'Выиграл Крестик!')
+            print('Выиграл Крестик!')
+        message.draw()
 
     def check_events(self):
         for event in pygame.event.get():
@@ -97,144 +97,31 @@ class TicTacToe:
                 self.check_mouse_events(mouse_pos)
 
     def check_mouse_events(self, mouse_pos):
+        button_clicked = {}
+        for button in self.buttons:
+            button_clicked.update({button: button.rect.collidepoint(mouse_pos)})
 
-        topleft_clicked = self.buttons.topleft_rect.collidepoint(mouse_pos)
-        center_clicked = self.buttons.center_rect.collidepoint(mouse_pos)
-        topright_clicked = self.buttons.topright_rect.collidepoint(mouse_pos)
-        top_clicked = self.buttons.top_rect.collidepoint(mouse_pos)
-        left_clicked = self.buttons.left_rect.collidepoint(mouse_pos)
-        bottomleft_clicked = self.buttons.bottomleft_rect.collidepoint(mouse_pos)
-        bottom_clicked = self.buttons.bottom_rect.collidepoint(mouse_pos)
-        bottomright_clicked = self.buttons.bottomright_rect.collidepoint(mouse_pos)
-        right_clicked = self.buttons.right_rect.collidepoint(mouse_pos)
-
-        # Topleft button
-        if topleft_clicked and self.settings.topleft_active:
-            self.settings.topleft_who = self.who
-            self.whose_move()
-            self.settings.topleft_active = False
-
-        # Center button
-        if center_clicked and self.settings.center_active:
-            self.settings.center_who = self.who
-            self.whose_move()
-            self.settings.center_active = False
-
-        # Topright button
-        if topright_clicked and self.settings.topright_active:
-            self.settings.topright_who = self.who
-            self.whose_move()
-            self.settings.topright_active = False
-
-        # Top button
-        if top_clicked and self.settings.top_active:
-            self.settings.top_who = self.who
-            self.whose_move()
-            self.settings.top_active = False
-
-        # Left button
-        if left_clicked and self.settings.left_active:
-            self.settings.left_who = self.who
-            self.whose_move()
-            self.settings.left_active = False
-
-        # Bottomleft button
-        if bottomleft_clicked and self.settings.bottomleft_active:
-            self.settings.bottomleft_who = self.who
-            self.whose_move()
-            self.settings.bottomleft_active = False
-
-        # Bottom button
-        if bottom_clicked and self.settings.bottom_active:
-            self.settings.bottom_who = self.who
-            self.whose_move()
-            self.settings.bottom_active = False
-
-        # Bottomright button
-        if bottomright_clicked and self.settings.bottomright_active:
-            self.settings.bottomright_who = self.who
-            self.whose_move()
-            self.settings.bottomright_active = False
-
-        # Right button
-        if right_clicked and self.settings.right_active:
-            self.settings.right_who = self.who
-            self.whose_move()
-            self.settings.right_active = False
+        for button in button_clicked:
+            if button_clicked[button] and button.status:
+                button.who = self.who
+                button.status = False
+                self.whose_move()
+                break
 
     def buttons_update(self):
-
-        # Topleft button
-        if not self.settings.topleft_active:
-            if self.settings.topleft_who == self.zero:
-                self.screen.blit(self.zero.image, self.buttons.topleft_rect)
-            else:
-                self.screen.blit(self.cross.image, self.buttons.topleft_rect)
-
-        # Center button
-        if not self.settings.center_active:
-            if self.settings.center_who == self.zero:
-                self.screen.blit(self.zero.image, self.buttons.center_rect)
-            else:
-                self.screen.blit(self.cross.image, self.buttons.center_rect)
-
-        # Topright button
-        if not self.settings.topright_active:
-            if self.settings.topright_who == self.zero:
-                self.screen.blit(self.zero.image, self.buttons.topright_rect)
-            else:
-                self.screen.blit(self.cross.image, self.buttons.topright_rect)
-
-        # Top button
-        if not self.settings.top_active:
-            if self.settings.top_who == self.zero:
-                self.screen.blit(self.zero.image, self.buttons.top_rect)
-            else:
-                self.screen.blit(self.cross.image, self.buttons.top_rect)
-
-        # Left button
-        if not self.settings.left_active:
-            if self.settings.left_who == self.zero:
-                self.screen.blit(self.zero.image, self.buttons.left_rect)
-            else:
-                self.screen.blit(self.cross.image, self.buttons.left_rect)
-
-        # Bottomleft button
-        if not self.settings.bottomleft_active:
-            if self.settings.bottomleft_who == self.zero:
-                self.screen.blit(self.zero.image, self.buttons.bottomleft_rect)
-            else:
-                self.screen.blit(self.cross.image, self.buttons.bottomleft_rect)
-
-        # Bottom button
-        if not self.settings.bottom_active:
-            if self.settings.bottom_who == self.zero:
-                self.screen.blit(self.zero.image, self.buttons.bottom_rect)
-            else:
-                self.screen.blit(self.cross.image, self.buttons.bottom_rect)
-
-        # Bottomright button
-        if not self.settings.bottomright_active:
-            if self.settings.bottomright_who == self.zero:
-                self.screen.blit(self.zero.image, self.buttons.bottomright_rect)
-            else:
-                self.screen.blit(self.cross.image, self.buttons.bottomright_rect)
-
-        # Right button
-        if not self.settings.right_active:
-            if self.settings.right_who == self.zero:
-                self.screen.blit(self.zero.image, self.buttons.right_rect)
-            else:
-                self.screen.blit(self.cross.image, self.buttons.right_rect)
+        for button in self.buttons:
+            if not button.status:
+                if button.who == self.zero:
+                    self.screen.blit(self.zero.image, button.rect)
+                else:
+                    self.screen.blit(self.cross.image, button.rect)
 
     def update_screen(self):
         """Обновляет изображения на экране и отображает новый экран."""
         self.screen.fill(self.settings.screen_color)
         self.field.update()
-        self.buttons.draw_button()
+        [button.draw_button() for button in self.buttons]
         self.buttons_update()
-        self.victory_condition()
-
         pygame.display.flip()
 
 
