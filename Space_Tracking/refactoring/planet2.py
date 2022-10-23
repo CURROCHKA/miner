@@ -46,7 +46,7 @@ class StockSystem:
     def update_amount(self, product_name: str, amount: int):
         self.get_product(product_name)[0] = amount
 
-    def get_product(self, product_name: str):
+    def get_product(self, product_name: str) -> list:
         return self.stock.products[product_name]
 
 

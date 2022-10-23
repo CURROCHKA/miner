@@ -40,7 +40,7 @@ class StarShip:
 
 
 class ShipSystem:
-    def __init__(self, star_ship):
+    def __init__(self, star_ship: StarShip):
         self.ship = star_ship
         self.cargo_module = ShipSystem.CargoModule(self.ship)
         self.navigation_module = ShipSystem.NavigationModule(self.ship)
@@ -51,11 +51,11 @@ class ShipSystem:
             self.ship = star_ship
 
         @property
-        def current_capacity(self):
-            return sum([product.amount for product in self.ship.cargo])
+        def current_capacity(self) -> int:
+            return sum([self.ship.cargo[product] for product in self.ship.cargo])
 
     class NavigationModule:
-        def __init__(self, star_ship):
+        def __init__(self, star_ship: StarShip):
             self.ship = star_ship
             self.location = self.ship.location
 
@@ -64,7 +64,7 @@ class ShipSystem:
             return round(sqrt(x ** 2 + y ** 2))
 
     class ControlModule:
-        def __init__(self, star_ship):
+        def __init__(self, star_ship: StarShip):
             self.ship = star_ship
             self.location = self.ship.location
 
