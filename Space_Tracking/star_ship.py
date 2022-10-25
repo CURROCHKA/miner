@@ -1,29 +1,25 @@
-from player import player
-
-HEIGHT = 10
-WIDTH = 10
+from math import sqrt
+from planet import Planet
 
 
 class Engine:
-    def __init__(self, power: int, weight: int):
-        self.power = power
-        self.weight = weight
+    def __init__(self, speed: int):
+        self.speed = speed
+        # self.battery = 0
 
 
 class Tank:
-    def __init__(self, capacity: int, weight: int):
+    def __init__(self, capacity: int):
         self.capacity = capacity
         self.fuel = 0
-        self.weight = weight
 
 
 class StarShip:
-    def __init__(self, name: str, capacity: int, location, engine, tank):
+    def __init__(self, name: str, capacity: int, location: Planet, engine: Engine, tank: Tank):
         self.name = name
+        self.money = 2000
         self.location = location
-        self.engine = engine
-        self.tank = tank
-        self.capacity = capacity
+        self.cargo_capacity = capacity
         self.cargo = {'minerals': 0,
                       'medicines': 0,
                       'food': 0,
@@ -32,107 +28,97 @@ class StarShip:
                       'technic': 0,
                       'luxuries': 0
                       }
+        self.engine = engine
+        self.tank = tank
+        self.system = ShipSystem(self)
 
-    @property
-    def current_capacity(self) -> int:
-        return sum(self.cargo.values())
-
-    def get_distance(self, planet) -> int:
-        distance = round(((planet.coord[0] - self.location.coord[0]) ** 2 + (
-                planet.coord[1] - self.location.coord[1]) ** 2) ** 0.5)
-        return distance
-
-    def move_to_planet(self, planet):
+    def move_to_planet(self, planet: Planet):
         if planet != self.location:
-            distance = self.get_distance(planet)
-            if distance * self.engine.power > self.tank.fuel:
-                print('Вы не можете полететь на эту планету, так как у вас не хватает топлива.')
-            elif distance * self.engine.power <= self.tank.fuel:
+            distance = self.system.navigation_module.get_distance(planet)
+            if self.engine.speed * distance <= self.tank.fuel:
                 self.location = planet
-                self.tank.fuel -= distance * self.engine.power
-                print(f'Вы прибыли на планету {planet.name}')
-        else:
-            print('Вы уже находитесь на этой планете.')
+                self.tank.fuel -= self.engine.speed * distance
 
-    @staticmethod
-    def is_valid_fuel(fuel: int) -> bool:
-        if type(fuel) is int and fuel > 0:
-            return True
-        else:
-            print('Введите числовое положительное значение.')
-        return False
 
-    def is_possible_refuel(self, fuel: int) -> bool:
-        if fuel * self.location.stock.products['fuel'][1] <= player.money:
-            if fuel <= self.location.stock.products['fuel'][0]:
-                return True
-            else:
-                print(
-                    f"{fuel} топлива нет на складе. На складе {self.location.stock.products['Fuel'][0]} "
-                    f"топлива."
-                )
-        else:
-            print(f'У вас не хватает денег, чтобы заправить {fuel} топлива.')
-        return False
+class ShipSystem:
+    def __init__(self, star_ship: StarShip):
+        self.ship = star_ship
+        self.cargo_module = ShipSystem.CargoModule(self.ship)
+        self.navigation_module = ShipSystem.NavigationModule(self.ship)
+        self.control_module = ShipSystem.ControlModule(self.ship)
 
-    def refuel(self, fuel: int):
-        if self.is_valid_fuel(fuel) and self.is_possible_refuel(fuel):
-            if fuel + self.tank.fuel > self.tank.capacity:
-                player.money -= (self.tank.capacity - self.tank.fuel) * self.location.stock.products['fuel'][1]
-                self.location.stock.products['fuel'][0] -= self.tank.capacity - self.tank.fuel
-                self.tank.fuel += self.tank.capacity - self.tank.fuel
-            else:
-                player.money -= self.location.stock.products['fuel'][1] * fuel
-                self.location.stock.products['fuel'][0] -= fuel
-                self.tank.fuel += fuel
+    class CargoModule:
+        def __init__(self, star_ship):
+            self.ship = star_ship
 
-    def is_valid_product_b(self, product: str, amount: int) -> bool:
-        if product in self.cargo:
-            if type(amount) is int and amount > 0:
-                return True
-            else:
-                print('Введите числовое положительное значение.')
-        else:
-            print('Такого продукта нет.')
-        return False
+        @property
+        def current_capacity(self) -> int:
+            return sum([self.ship.cargo[product] for product in self.ship.cargo])
 
-    def is_possible_buy(self, product: str, amount: int) -> bool:
-        if self.location.stock.products[product][0] >= amount:
-            if player.money >= self.location.stock.products[product][1] * amount:
-                return True
-            else:
-                print(f'У вас не хватает денег, чтобы купить {amount} {product.lower()}.')
-        else:
-            print(f'{amount} {product.lower()} нет на складе. На складе '
-                  f'{self.location.stock.products[product][0]} {product.lower()}')
-        return False
+    class NavigationModule:
+        def __init__(self, star_ship: StarShip):
+            self.ship = star_ship
+            self.location = self.ship.location
 
-    def buy(self, product: str, amount: int):
-        if self.is_valid_product_b(product, amount) and self.is_possible_buy(product, amount):
-            if self.current_capacity + amount > self.capacity:
-                player.money -= (self.capacity - self.current_capacity) * self.location.stock.products[product][1]
-                self.location.stock.products[product][0] -= self.capacity - self.current_capacity
-                self.cargo += self.capacity - self.current_capacity
-            else:
-                player.money -= self.location.stock.products[product][1] * amount
-                self.location.stock.products[product][0] -= amount
-                self.cargo[product] += amount
+        def get_distance(self, planet: Planet) -> int:
+            x, y = (planet.coord[0] - self.location.coord[0]), (planet.coord[1] - self.location.coord[1])
+            return round(sqrt(x ** 2 + y ** 2))
 
-    def is_valid_product_s(self, product: str, amount: int) -> bool:
-        if product in self.cargo:
-            if type(amount) is int and amount > 0:
-                return True
-            else:
-                print('Введите числовое положительное значение.')
-        else:
-            print('Такого продукта нет.')
-        return False
+    class ControlModule:
+        def __init__(self, star_ship: StarShip):
+            self.ship = star_ship
+            self.location = self.ship.location
+            self.cargo = self.ship.cargo
+            self.cargo_capacity = self.ship.cargo_capacity
+            self.tank = self.ship.tank
+            self.stock = self.ship.location.stock
+            # self.money = self.ship.money
 
-    def sale(self, product: str, amount: int):
-        if self.is_valid_product_s(product, amount):
-            if self.cargo[product] >= amount:
+        @staticmethod
+        def is_valid_fuel(fuel: int) -> bool:
+            return isinstance(fuel, int) and fuel > 0
+
+        def is_possible_refuel(self, fuel: int) -> bool:
+            return self.location.stock.system.get_product('fuel')[0] >= fuel
+
+        def refuel(self, fuel: int):
+            if self.is_valid_fuel(fuel) and self.is_possible_refuel(fuel):
+                product = self.location.stock.system.get_product('fuel')
+                if fuel + self.tank.fuel <= self.tank.capacity:
+                    product[0] -= fuel
+                    self.ship.money -= fuel * product[1]  # Почему (self.money = self.ship.money) != этой строке?
+                    self.tank.fuel += fuel
+                else:
+                    fuel = self.tank.capacity - self.tank.fuel
+                    product[0] -= fuel  # Вот здесь, например, всё работает
+                    self.ship.money -= fuel * product[1]
+                    self.tank.fuel += fuel
+
+        def is_valid_sale_and_buy(self, product: str, amount: int) -> bool:
+            return isinstance(product, str) and product in self.cargo and isinstance(amount, int) and amount > 0
+
+        def sale(self, product: str, amount: int):
+            if self.is_valid_sale_and_buy(product, amount):
                 self.cargo[product] -= amount
-                self.location.stock.products[product][0] += amount
-                player.money += self.location.stock.products[product][1] * amount
-            else:
-                print(f'У вас есть только {self.cargo[product]} {product.lower()}')
+                self.stock.products[product][0] += amount
+                self.ship.money += self.location.stock.system.get_product(product)[1] * amount
+
+        def is_possible_buy(self, product: str, amount: int) -> bool:
+            return self.location.stock.system.get_product(product)[0] >= amount
+
+        def buy(self, product: str, amount: int):
+            if self.is_valid_sale_and_buy(product, amount) and self.is_possible_buy(product, amount):
+                if amount + self.ship.system.cargo_module.current_capacity <= self.cargo_capacity:
+                    self.location.stock.products[product][0] -= amount
+                    self.ship.money -= self.location.stock.system.get_product(product)[1] * amount
+                    self.cargo[product] += amount
+                else:
+                    amount = self.cargo_capacity - self.ship.system.cargo_module.current_capacity
+                    self.location.stock.products[product][0] -= amount
+                    self.ship.money -= self.location.stock.system.get_product(product)[1] * amount
+                    self.cargo[product] += amount
+
+
+planet1 = Planet('Earth')
+planet2 = Planet('Auropa')
+star_ship1 = StarShip('qwerty', 100, planet1, Engine(1), Tank(100))
