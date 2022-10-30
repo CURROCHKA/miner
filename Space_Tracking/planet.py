@@ -49,8 +49,8 @@ class StockSystem:
 
     def get_product(self, product_name: str) -> List[float]:
         return self.stock.products[product_name]
-
-
+        
+        
 class Shop:
     def __init__(self):
         self.tanks = {}

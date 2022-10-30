@@ -1,3 +1,6 @@
+import sys
+
+
 class GameStats:
     def __init__(self, t_game):
         self.buttons = t_game.buttons

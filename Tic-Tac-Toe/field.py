@@ -11,9 +11,8 @@ class Field:
         # Изображение поля
         self.image = pygame.image.load('image/field.png')
         self.rect = self.image.get_rect()
-        self.rect.center = self.screen_rect.center
         # Позиция поля
 
     def update(self):
         self.screen.blit(self.image, self.rect)
-
+        self.rect.center = self.screen_rect.center
