@@ -1,25 +1,25 @@
 from math import sqrt
 from planet import Planet
+# TODO set_price in detail algorithm
 
 
 class Engine:
     def __init__(self, speed: int):
         self.speed = speed
+        self.price = 0
         # self.battery = 0
 
 
 class Tank:
     def __init__(self, capacity: int):
         self.capacity = capacity
+        self.price = 0
         self.fuel = 0
 
 
-class StarShip:
-    def __init__(self, name: str, capacity: int, location: Planet, engine: Engine, tank: Tank):
-        self.name = name
-        self.money = 2000
-        self.location = location
-        self.cargo_capacity = capacity
+class Cargo:
+    def __init__(self, capacity: int):
+        self.capacity = capacity
         self.cargo = {'minerals': 0,
                       'medicines': 0,
                       'food': 0,
@@ -28,6 +28,15 @@ class StarShip:
                       'technic': 0,
                       'luxuries': 0
                       }
+
+
+class StarShip:
+    def __init__(self, name: str, cargo: Cargo, engine: Engine, tank: Tank, location: Planet):
+        self.name = name
+        self.price = 0
+        self.money = 2000
+        self.location = location
+        self.cargo = cargo
         self.engine = engine
         self.tank = tank
         self.system = ShipSystem(self)
@@ -49,11 +58,11 @@ class ShipSystem:
 
     class CargoModule:
         def __init__(self, star_ship):
-            self.ship = star_ship
+            self.cargo = star_ship.cargo
 
         @property
         def current_capacity(self) -> int:
-            return sum([self.ship.cargo[product] for product in self.ship.cargo])
+            return sum([self.cargo.cargo[product] for product in self.cargo.cargo])
 
     class NavigationModule:
         def __init__(self, star_ship: StarShip):
@@ -68,54 +77,56 @@ class ShipSystem:
         def __init__(self, star_ship: StarShip):
             self.ship = star_ship
             self.location = self.ship.location
-            self.cargo = self.ship.cargo
-            self.cargo_capacity = self.ship.cargo_capacity
-            self.tank = self.ship.tank
-            self.engine = self.ship.engine
-            self.stock = self.location.stock
-            self.shop = self.location.shop
-            # self.money = self.ship.money Не получается корректно этим пользоваться
 
         @staticmethod
         def __is_valid_fuel(fuel: int) -> bool:
             return isinstance(fuel, int) and fuel > 0
 
         def __is_possible_refuel(self, fuel: int) -> bool:
-            amount, price = self.stock.system.get_product('fuel')
+            amount, price = self.location.stock.system.get_product('fuel')
             return amount >= fuel and fuel * price <= self.ship.money
 
         def refuel(self, fuel: int):
             if self.__is_valid_fuel(fuel) and self.__is_possible_refuel(fuel):
-                amount, price = self.stock.system.get_product('fuel')
-                if fuel + self.tank.fuel >= self.tank.capacity:
-                    fuel = self.tank.capacity - self.tank.fuel
+                amount, price = self.location.stock.system.get_product('fuel')
+                tank_fuel, tank_capacity = self.ship.tank.fuel, self.ship.tank.capacity
+                if fuel + tank_fuel >= tank_capacity:
+                    fuel = tank_capacity - tank_fuel
                 amount -= fuel
                 self.ship.money -= fuel * price
-                self.tank.fuel += fuel
+                self.ship.tank.fuel += fuel
 
         def __is_valid_sale_and_buy_product(self, product: str, amount: int) -> bool:
-            return isinstance(product, str) and product in self.cargo and isinstance(amount, int) and amount > 0
+            return isinstance(product, str) and product in self.ship.cargo.cargo and isinstance(amount, int) \
+                   and amount > 0
+
+        def __is_possible_sale_product(self, product: str, amount: int) -> bool:
+            return amount <= self.ship.cargo.cargo[product]
 
         def sale_product(self, product: str, amount: int):
-            if self.__is_valid_sale_and_buy_product(product, amount):
-                self.cargo[product] -= amount
-                self.stock.products[product][0] += amount
-                self.ship.money += self.stock.system.get_product(product)[1] * amount  # Стоит ли выносить это в
-                # отдельную переменную?
+            if self.__is_valid_sale_and_buy_product(product, amount) and\
+                    self.__is_possible_sale_product(product, amount):
+                price = self.location.stock.system.get_product(product)[1]
+                self.ship.cargo.cargo[product] -= amount
+                self.location.stock.products[product][0] += amount
+                self.ship.money += price * amount
 
         def __is_possible_buy_product(self, product: str, amount: int) -> bool:
-            product_amount, price = self.stock.system.get_product(product)
-            return product_amount >= amount and (price * amount <= self.ship.money or price * self.cargo_capacity
-                                                 - self.ship.system.cargo_module.current_capacity)
+            product_amount, price = self.location.stock.system.get_product(product)
+            difference = self.ship.cargo.capacity - self.ship.system.cargo_module.current_capacity
+            return product_amount >= amount and (price * amount <= self.ship.money or
+                                                 price * difference <= self.ship.money)
 
         def buy_product(self, product: str, amount: int):
             if self.__is_valid_sale_and_buy_product(product, amount) and \
                     self.__is_possible_buy_product(product, amount):
-                if amount + self.ship.system.cargo_module.current_capacity >= self.cargo_capacity:
-                    amount = self.cargo_capacity - self.ship.system.cargo_module.current_capacity
+                current_capacity = self.ship.system.cargo_module.current_capacity
+                cargo_capacity = self.ship.cargo.capacity
+                if amount + current_capacity >= cargo_capacity:
+                    amount = cargo_capacity - current_capacity
                 self.location.stock.products[product][0] -= amount
                 self.ship.money -= self.location.stock.system.get_product(product)[1] * amount
-                self.cargo[product] += amount
+                self.ship.cargo.cargo[product] += amount
 
         # def __is_valid_detail(self, detail: StarShip | Engine | Tank) -> bool:
         #     return isinstance(detail, StarShip | Engine | Tank) and detail not in [self.ship, self.tank, self.engine]
@@ -131,5 +142,4 @@ class ShipSystem:
 
 planet1 = Planet('Earth')
 planet2 = Planet('Auropa')
-star_ship1 = StarShip('qwerty', 100, planet1, Engine(1), Tank(100))
-# star_ship1.system.control_module.buy_detail(Engine(1))
+star_ship1 = StarShip('qwerty', Cargo(100), Engine(1), Tank(100), planet1)
