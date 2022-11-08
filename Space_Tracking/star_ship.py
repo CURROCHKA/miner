@@ -140,31 +140,47 @@ class ShipSystem:
                    [self.ship, self.ship.tank, self.ship.engine]
 
         def __is_possible_buy_detail(self, detail: StarShip | Engine | Tank) -> bool:
-            return self.location.shop.system.get_price(detail) <= self.ship.money and \
+            return detail.price <= self.ship.money and \
                    detail in self.location.shop.details
 
         def buy_detail(self, detail: StarShip | Engine | Tank):
             if self.__is_valid_detail(detail) and self.__is_possible_buy_detail(detail):
-                price = self.location.shop.system.get_price(detail)
+                print(True)
+                self.ship.money -= detail.price
+                self.sale_detail(detail)
                 self.replace_detail(detail)
-                self.ship.money -= price
 
-        def sale_detail(self, detail: str):
-            if detail == 'Engine':
+        def sale_detail(self, detail: StarShip | Engine | Tank):
+            if isinstance(detail, StarShip):
+                self.ship.money += self.ship.price
+            elif isinstance(detail, Engine):
                 self.ship.money += self.ship.engine.price
+            else:
+                self.ship.money += self.ship.tank.price
 
         def replace_detail(self, detail: StarShip | Engine | Tank):
-            detail_type = type(detail).__name__
-            if detail_type == 'Engine':
-                self.location.shop.details[detail], self.ship.engine = self.ship.engine, detail
-            elif detail_type == 'Tank':
-                self.location.shop.details[detail], self.ship.tank = self.ship.tank, detail
+            index = self.location.shop.details.index(detail)
+            new_detail = self.location.shop.details[index]
+            if isinstance(detail, StarShip):
+                engine = self.ship.engine
+                tank = self.ship.tank
+                new_detail, self.ship = self.ship, new_detail
+                self.ship.engine = engine
+                self.ship.tank = tank
+            elif isinstance(detail, Engine):
+                new_detail, self.ship.engine = \
+                    self.ship.engine, new_detail
             else:
-                prev_tank, prev_engine = self.ship.tank, self.ship.engine
-                self.location.shop.details[detail], self.ship, = self.ship, detail
-                self.ship.tank, self.ship.engine = prev_tank, prev_engine
+                new_detail, self.ship.engine = self.ship.tank, new_detail
 
 
 planet1 = Planet('Earth')
 planet2 = Planet('Auropa')
 star_ship1 = StarShip('qwerty', Cargo(100), planet1, Engine(1), Tank(100))
+# engine = Engine(3)
+# star_ship2 = StarShip('Aerobus', Cargo(90), planet1, Engine(2), Tank(110))
+# planet1.shop.details.append(star_ship2)
+# planet1.shop.details.append(engine)
+# planet1.shop.details.append(Tank(90))
+# star_ship1.system.control_module.buy_detail(engine)
+# print(star_ship1.name)
