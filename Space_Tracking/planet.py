@@ -31,7 +31,7 @@ class Stock:
                          'materials': [100, 100],
                          'fuel': [1000, 10],
                          'appliances': [100, 50],
-                         'technic': [100, 80],
+                         'machinery': [100, 80],
                          'luxuries': [100, 100]
                          }  # (0 - кол-во, 0 - цена)
         self.system = StockSystem(self)
