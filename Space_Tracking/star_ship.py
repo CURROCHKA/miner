@@ -10,9 +10,9 @@ class Engine:
 
 
 class Tank:
-    def __init__(self, capacity: int):
+    def __init__(self, capacity: int, price: int):
         self.capacity = capacity
-        self.price = 0
+        self.price = price
         self.fuel = 0
 
 
@@ -21,7 +21,7 @@ class CargoBay:
         self.capacity = capacity
         self.cargo = {'minerals': 0,
                       'medicines': 0,
-                      'food': 100,
+                      'food': 0,
                       'materials': 0,
                       'appliances': 0,
                       'machinery': 0,
@@ -42,7 +42,7 @@ class StarShip:
     def is_enough_money(self, cost: int):
         if cost <= self.money:
             return True
-        print(f"Not enough money for the buy. You need additional {cost - self.money}$")
+        print(f"Not enough money for the buy. You need additional {cost - self.money}$.")
         return False
 
     @staticmethod
@@ -56,64 +56,55 @@ class StarShip:
             income = stock.products[product][1] * amount
             self.money += income
             print(
-                f"Sale of {amount} {product} units for {income}$ is complete. Current balance is {self.money}")
+                f"Sale of {amount} {product} units for {income}$ is complete. Current balance is {self.money}$.")
         else:
-            print(f"Sale is denied. There is no possibility to sale {amount} units of {product}")
+            print(f"Sale is denied. There is no possibility to sale {amount} units of {product}.")
 
     def make_buy(self, product: str, amount: int):
         stock = self.location.stock
         cost = stock.products[product][1] * amount
-        result = self.ship_system.CargoModule.buy_product(product, amount, self.cargo_bay, stock)
-        if self.is_enough_money(cost) and result:
+        if (self.is_enough_money(cost) and
+                self.ship_system.CargoModule.buy_product(product, amount, self.cargo_bay, stock)):
             self.money -= cost
             print(
-                f"Buying of {amount} {product} units for {cost}$ is complete. Current balance is {self.money}")
+                f"Buying of {amount} {product} units for {cost}$ is complete. Current balance is {self.money}$.")
         else:
-            print(f"Buying is denied. There is no possibility to buy {amount} units of {product}")
+            print(f"Buying is denied. There is no possibility to buy {amount} units of {product}.")
 
     def move_to_planet(self, target_planet: Planet):
-        if target_planet is self.location:
-            distance = self.ship_system.NavigationModule.get_distance(self.location, target_planet)
-            if self.engine.speed * distance <= self.tank.fuel:
-                self.location = target_planet
-                self.tank.fuel -= self.engine.speed * distance
+        planet_name = target_planet.name
+        result = self.ship_system.NavigationModule.move_to_planet(target_planet, self)
+        if result:
+            print(f"You have arrived on the planet {planet_name}.")
+        else:
+            print(f"There is no possibility to move to a planet {planet_name}.")
 
     def make_refuel(self, refuel_amount: int):
         stock = self.location.stock
         cost = stock.products["fuel"][1] * refuel_amount
-        result = self.ship_system.ComponentModule.refuel(refuel_amount, self.tank, stock)
-        if self.is_enough_money(cost) and result:
+        if self.is_enough_money(cost) and self.ship_system.ComponentModule.refuel(refuel_amount, self.tank, stock):
             self.money -= cost
             print(
-                f"Refuel of {refuel_amount} units for {cost}$ is complete. Current balance is {self.money}")
+                f"Refuel of {refuel_amount} units for {cost}$ is complete. Current balance is {self.money}$.")
         else:
-            print(f"Refuel is denied. There is no possibility to refuel {refuel_amount} units of fuel")
+            print(f"Refuel is denied. There is no possibility to refuel {refuel_amount} units of fuel.")
 
     def buy_new_component(self, component: Union[Engine, Tank]):
         shop = self.location.shop
         cost = component.price
-        cost -= self.engine.price if isinstance(component, Engine) else self.tank.price
-        result = self.ship_system.ComponentModule.buy_component(component, shop, self)
+        cost_old_component = self.engine.price if isinstance(component, Engine) else self.tank.price
         component_name = self.get_component_name(component)
-        if self.is_enough_money(cost) and result:
-            # self.sale_old_component(component)
+        if (self.is_enough_money(cost - cost_old_component) and
+                self.ship_system.ComponentModule.buy_component(component, shop, self)):
+            self.sale_old_component(component_name, cost_old_component)
             self.money -= cost
-            cost = cost if cost >= 0 else 0
-            print(f"Bought a new detail - {component_name} for a {cost}$. Current balance is {self.money}")
+            print(f"Bought a new component - {component_name} for {cost}$. Current balance is {self.money}$.")
         else:
-            print(f"Purchase is denied. There is no possibility to buy {component_name}")
+            print(f"Purchase is denied. There is no possibility to buy {component_name}.")
 
-    def sale_old_component(self, component: Union[Engine, Tank]):
-        shop = self.location.shop
-        income = 0
-        if isinstance(component, Engine):
-            income = self.engine.price
-            shop.details.append(self.engine)
-        elif isinstance(component, Tank):
-            income = self.tank.price
-            shop.details.append(self.tank)
-        component_name = self.get_component_name(component)
-        print(f"Your {component_name} was sold for {income}$")
+    def sale_old_component(self, component_name: str, cost: int):
+        self.money += cost
+        print(f"Your {component_name} was sold for {cost}$.")
 
     def get_information(self):
         pass
@@ -128,7 +119,7 @@ class ShipSystem:
         @staticmethod
         def sale_product(product: str, sale_amount: int, cargo_bay: CargoBay, stock: Stock) -> bool:
             cargo_bay_product_amount = cargo_bay.cargo[product]
-            if not (product in cargo_bay.cargo and 0 < sale_amount <= cargo_bay_product_amount):
+            if not (product in cargo_bay.cargo and sale_amount <= cargo_bay_product_amount):
                 return False
             cargo_bay.cargo[product] -= sale_amount
             stock.products[product][0] += sale_amount
@@ -138,10 +129,9 @@ class ShipSystem:
         def buy_product(product: str, buy_amount: int, cargo_bay: CargoBay, stock: Stock) -> bool:
             cargo_bay_current_capacity = ShipSystem.CargoModule.get_current_capacity(cargo_bay.cargo)
             stock_amount = stock.products[product][0]
-            if not (product in cargo_bay.cargo.keys()
-                    and 0 < buy_amount <= cargo_bay_current_capacity
-                    and buy_amount <= stock_amount
-            ):
+            if not (product in cargo_bay.cargo
+                    and buy_amount <= cargo_bay.capacity - cargo_bay_current_capacity
+                    and buy_amount <= stock_amount):
                 return False
             cargo_bay.cargo[product] += buy_amount
             stock.products[product][0] -= buy_amount
@@ -154,12 +144,23 @@ class ShipSystem:
             y = target_planet.coord[1] - current_planet.coord[1]
             return round(sqrt(x ** 2 + y ** 2))
 
+        @staticmethod
+        def move_to_planet(target_planet: Planet, ship: StarShip) -> bool:
+            distance = ship.ship_system.NavigationModule.get_distance(ship.location, target_planet)
+            speed = ship.engine.speed
+            fuel = ship.tank.fuel
+            location = ship.location
+            if speed * distance <= fuel and not(target_planet is location):
+                ship.location = target_planet
+                ship.tank.fuel -= speed * distance
+                return True
+            return False
+
     class ComponentModule:
         @staticmethod
         def refuel(refuel_amount: int, tank: Tank, stock: Stock) -> bool:
-            refuel_amount = refuel_amount if refuel_amount <= tank.capacity - tank.fuel else tank.capacity - tank.fuel
-            stock_amount = stock.products["fuel"][1]
-            if not refuel_amount <= stock_amount:
+            stock_amount = stock.products["fuel"][0]
+            if not (refuel_amount <= stock_amount and refuel_amount + tank.fuel <= tank.capacity):
                 return False
             tank.fuel += refuel_amount
             stock.products["fuel"][0] -= refuel_amount
@@ -167,16 +168,24 @@ class ShipSystem:
 
         @staticmethod
         def buy_component(component: Union[Engine, Tank], shop: Shop, ship: StarShip) -> bool:
-            if not (component in shop.details):
+            if not (component in shop.components):
                 return False
             if isinstance(component, Engine):
                 ship.engine = component
             elif isinstance(component, Tank):
-                fuel = ship.tank.fuel if component.capacity <= ship.tank.fuel else component.capacity
+                ship.ship_system.ComponentModule.sale_component(component, shop, ship)
+                fuel = ship.tank.fuel if ship.tank.fuel <= component.capacity else component.capacity
                 ship.tank = component
                 ship.tank.fuel = fuel
-            shop.details.remove(component)
+            shop.components.remove(component)
             return True
+
+        @staticmethod
+        def sale_component(component: Union[Engine, Tank], shop: Shop, ship: StarShip):
+            if isinstance(component, Engine):
+                shop.components.append(ship.engine)
+            elif isinstance(component, Tank):
+                shop.components.append(ship.tank)
 
     class InformationModule:
         @staticmethod
@@ -189,18 +198,5 @@ class ShipSystem:
 
 
 planet1 = Planet('Earth')
-star_ship1 = StarShip('qwerty', 1000, planet1, Engine(1, 20), Tank(100))
-print(star_ship1, star_ship1.cargo_bay.cargo, star_ship1.money)
-print(star_ship1.location.stock.products)
-
-star_ship1.make_buy("food", 100)
-print(star_ship1, star_ship1.cargo_bay.cargo, star_ship1.money)
-print(star_ship1.location.stock.products)
-
-star_ship1.make_sale("food", 200)
-print(star_ship1, star_ship1.cargo_bay.cargo, star_ship1.money)
-print(star_ship1.location.stock.products)
-
-engine = Engine(10, 1)
-planet1.shop.details.append(engine)
-star_ship1.buy_new_component(engine)
+planet2 = Planet('Auropa')
+star_ship1 = StarShip('qwerty', 1000, planet1, Engine(1, 20), Tank(100, 50))
