@@ -45,10 +45,6 @@ class StarShip:
         print(f"Not enough money for the buy. You need additional {cost - self.money}$.")
         return False
 
-    @staticmethod
-    def get_component_name(component: Union[Engine, Tank]) -> str:
-        return component.__class__.__name__.lower()
-
     def make_sale(self, product: str, amount: int):
         result = self.ship_system.CargoModule.sale_product(product, amount, self.cargo_bay, self.location.stock)
         if result:
@@ -89,11 +85,12 @@ class StarShip:
         else:
             print(f"Refuel is denied. There is no possibility to refuel {refuel_amount} units of fuel.")
 
-    def buy_new_component(self, component: Union[Engine, Tank]):
+    def buy_new_component(self, component: Union[Engine, Tank], component_name: str):
         shop = self.location.shop
         cost = component.price
         cost_old_component = self.engine.price if isinstance(component, Engine) else self.tank.price
-        component_name = self.get_component_name(component)
+        # Здесь я не писал переменную result, потому что тогда, возможно будет купить деталь раньше, чем мы узнаем,
+        # хватает ли на неё денег.
         if (self.is_enough_money(cost - cost_old_component) and
                 self.ship_system.ComponentModule.buy_component(component, shop, self)):
             self.sale_old_component(component_name, cost_old_component)
