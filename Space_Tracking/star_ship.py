@@ -89,8 +89,6 @@ class StarShip:
         shop = self.location.shop
         cost = component.price
         cost_old_component = self.engine.price if isinstance(component, Engine) else self.tank.price
-        # Здесь я не писал переменную result, потому что тогда, возможно будет купить деталь раньше, чем мы узнаем,
-        # хватает ли на неё денег.
         if (self.is_enough_money(cost - cost_old_component) and
                 self.ship_system.ComponentModule.buy_component(component, shop, self)):
             self.sale_old_component(component_name, cost_old_component)
