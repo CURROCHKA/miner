@@ -53,13 +53,10 @@ class StockSystem:
         
 class Shop:
     def __init__(self):
-        self.details = []
+        self.components = []
         self.system = ShopSystem(self)
 
 
 class ShopSystem:
     def __init__(self, shop: Shop):
         self.shop = shop
-
-    # def get_price(self, detail) -> int:
-    #     return self.shop.details[detail]
