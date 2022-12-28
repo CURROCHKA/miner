@@ -38,6 +38,7 @@ class StarShip:
         self.engine = engine
         self.tank = tank
         self.ship_system = ShipSystem()
+        self.inactivity_moves = 0
 
     def is_enough_money(self, cost: int):
         if cost <= self.money:
@@ -71,7 +72,7 @@ class StarShip:
         planet_name = target_planet.name
         result = self.ship_system.NavigationModule.move_to_planet(target_planet, self)
         if result:
-            print(f"You have arrived on the planet {planet_name}.")
+            print(f'The ship {self.name} was sent to the planet {target_planet.name}')
         else:
             print(f"There is no possibility to move to a planet {planet_name}.")
 
@@ -113,8 +114,7 @@ class ShipSystem:
 
         @staticmethod
         def sale_product(product: str, sale_amount: int, cargo_bay: CargoBay, stock: Stock) -> bool:
-            cargo_bay_product_amount = cargo_bay.cargo[product]
-            if not (product in cargo_bay.cargo and sale_amount <= cargo_bay_product_amount):
+            if not (product in cargo_bay.cargo and sale_amount <= cargo_bay.cargo[product]):
                 return False
             cargo_bay.cargo[product] -= sale_amount
             stock.products[product][0] += sale_amount
@@ -146,6 +146,7 @@ class ShipSystem:
             fuel = ship.tank.fuel
             location = ship.location
             if speed * distance <= fuel and not(target_planet is location):
+                ship.inactivity_moves += round(distance / ship.engine.speed)
                 ship.location = target_planet
                 ship.tank.fuel -= speed * distance
                 return True
@@ -190,8 +191,3 @@ class ShipSystem:
         @staticmethod
         def get_stock_info(planet):
             pass
-
-
-planet1 = Planet('Earth')
-planet2 = Planet('Auropa')
-star_ship1 = StarShip('qwerty', 1000, planet1, Engine(1, 20), Tank(100, 50))
