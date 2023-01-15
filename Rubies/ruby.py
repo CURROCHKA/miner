@@ -1,4 +1,5 @@
 import pygame
+from random import choice
 
 
 class Ruby:
@@ -11,7 +12,6 @@ class Ruby:
         self.image = self.image.convert_alpha()
         self.rect = self.image.get_rect()
         self.id = None
-        self.id_simple = None
 
     def draw(self):
         self.screen.blit(self.image, self.rect)
@@ -19,6 +19,6 @@ class Ruby:
     def update_pos(self, x, y):
         self.rect.x, self.rect.y = self.rect.x + x, self.rect.y + y
 
-    def new_color(self, color):
+    def change_color(self, color):
         self.color = color
         self.image = pygame.image.load(f'images/{self.color}.png')

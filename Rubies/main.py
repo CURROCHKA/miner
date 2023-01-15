@@ -15,7 +15,6 @@ class Rubies:
         self.rubies = []
         self.rubies_simple = []
         self.number_rows, self.number_rubies_x = self._create_rubies()
-        self.win_rows = [[color] * i for color in COLORS for i in range(3, self.number_rubies_x)]
 
         pygame.display.set_caption('Rubies')
 
@@ -23,7 +22,6 @@ class Rubies:
         while True:
             self._update_screen()
             self._check_events()
-            self._check_rows()
 
     def _check_events(self) -> None:
         moving = None
@@ -60,28 +58,42 @@ class Rubies:
             for i in range(-1, 2):
                 stop = False
                 for j in range(-1, 2):
-                    if 0 <= ruby.id[0] + i < len(self.rubies) and 0 <= ruby.id[1] + j < len(
-                            self.rubies[0]) \
-                            and not (i == -1 and j == -1) and not (i == -1 and j == 1) and \
-                            not (i == 0 and j == 0) and not (i == 1 and j == -1) and not (
-                            i == 1 and j == 1):
+                    if self.__is_valid_replace(ruby, i, j):
                         if self.rubies[ruby.id[0] + i][ruby.id[1] + j].id == new_ruby.id:
-                            ruby.id, new_ruby.id = new_ruby.id, ruby.id
-                            self.rubies[ruby.id[0]][ruby.id[1]], self.rubies[new_ruby.id[0]][
-                                new_ruby.id[1]] = \
-                                self.rubies[new_ruby.id[0]][new_ruby.id[1]], self.rubies[ruby.id[0]][
-                                    ruby.id[1]]
-                            new_ruby.rect.x, new_ruby.rect.y, ruby.rect.x, ruby.rect.y = old_x, old_y, \
-                                                                                         new_ruby.rect.x, \
-                                                                                         new_ruby.rect.y
+                            self._replace_rubies(ruby, new_ruby, old_x, old_y)
                             stop = True
                             break
-                        else:
-                            ruby.rect.x, ruby.rect.y = old_x, old_y
+                        ruby.rect.x, ruby.rect.y = old_x, old_y
                 if stop:
                     break
         else:
             ruby.rect.x, ruby.rect.y = old_x, old_y
+
+    def __is_valid_replace(self, ruby: Ruby, i: int, j: int) -> bool:
+        if 0 <= ruby.id[0] + i < len(self.rubies) and 0 <= ruby.id[1] + j < len(
+                self.rubies[0]) \
+                and not (i == -1 and j == -1) and not (i == -1 and j == 1) and \
+                not (i == 0 and j == 0) and not (i == 1 and j == -1) and not (
+                i == 1 and j == 1):
+            return True
+        return False
+
+    def _replace_rubies(self, ruby: Ruby, new_ruby: Ruby, old_x: int, old_y: int) -> None:
+        ruby.id, new_ruby.id = new_ruby.id, ruby.id
+        self.rubies[ruby.id[0]][ruby.id[1]], self.rubies[new_ruby.id[0]][
+            new_ruby.id[1]] = \
+            self.rubies[new_ruby.id[0]][new_ruby.id[1]], self.rubies[ruby.id[0]][
+                ruby.id[1]]
+        new_ruby.rect.x, new_ruby.rect.y, ruby.rect.x, ruby.rect.y = old_x, old_y, \
+                                                                     new_ruby.rect.x, \
+                                                                     new_ruby.rect.y
+        for i in range(-1, 2, 2):
+            for j in range(-1, 2):
+                self._check_row(self.rubies[ruby.id[0] + i])
+                self._check_row(self.rubies[new_ruby.id[0] + i])
+                self._check_column(self.rubies)
+        # self._check_row()
+        # self._check_column()
 
     def _check_press_ruby(self, mouse_pos: tuple) -> tuple:
         for ruby_rows in self.rubies:
@@ -92,15 +104,51 @@ class Rubies:
                     return ruby, moving, moving_id
         return None, None, None
 
-    def _check_rows(self):
-        pass
+    def _check_row(self, row):
+        memory = []
+        for ruby_row in self.rubies:
+            if len(memory) >= 3:
+                self._change_rubies(memory)
+            memory.clear()
+            for ruby in ruby_row:
+                if len(memory) == 0:
+                    memory.append(ruby)
+                    continue
+                elif len(memory) >= 3:
+                    if memory[0].color != ruby.color:
+                        self._change_rubies(memory)
+                        memory.clear()
+                elif memory[0].color != ruby.color:
+                    memory.clear()
+                memory.append(ruby)
+
+    def _check_column(self, column):
+        memory = []
+        for j in range(self.number_rubies_x):
+            if len(memory) >= 3:
+                self._change_rubies(memory)
+            memory.clear()
+            for i in range(self.number_rows):
+                ruby = self.rubies[i][j]
+                if len(memory) == 0:
+                    memory.append(ruby)
+                    continue
+                elif len(memory) >= 3:
+                    if memory[0].color != ruby.color:
+                        self._change_rubies(memory)
+                        memory.clear()
+                elif memory[0].color != ruby.color:
+                    memory.clear()
+                memory.append(ruby)
 
     @staticmethod
     def _change_rubies(rubies):
         if len(rubies) > 0:
             for ruby in rubies:
                 color = choice(COLORS)
-                ruby.new_color(color)
+                while color == ruby.color:
+                    color = choice(COLORS)
+                ruby.change_color(color)
 
     def _create_rubies(self):
         ruby = Ruby(self, choice(COLORS))
@@ -134,8 +182,6 @@ class Rubies:
                     break
             if stop:
                 break
-        for id_simple, ruby_simple in enumerate(self.rubies_simple):
-            ruby_simple.id_simple = id_simple
 
     def _update_screen(self):
         self.screen.fill('white')
