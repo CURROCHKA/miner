@@ -127,13 +127,18 @@ def third_activity(ship: StarShip):
             amount = int(input('Enter the amount of the product you want to sale (or choose another activity - 0): '))
             if amount == 0:
                 break
-        except ValueError:
-            if product == '0':
+            elif amount < 0:
+                print('\nEnter a positive integer\n')
+                sleep(1)
+                flag = False
+                third_activity(ship)
                 break
+        except ValueError:
             print('\nEnter a positive integer\n')
             sleep(1)
             flag = False
             third_activity(ship)
+            break
 
         cargo = ship.cargo_bay.cargo
         if product in cargo and amount != 0:
@@ -151,6 +156,16 @@ def fourth_activity(ship: StarShip):
         if not flag:
             break
         print_components(ship)
+        try:
+            number = int(input('Enter the number of the component you want to buy (or choose another activity - 0): '))
+            if number == 0:
+                break
+        except ValueError:
+            print('\nEnter a positive integer\n')
+            sleep(1)
+            flag = False
+            fourth_activity(ship)
+        ...
 
 
 def fifth_activity(ship: StarShip):
@@ -186,12 +201,12 @@ def print_products(ship: StarShip):
 
 def print_components(ship: StarShip):
     planet = ship.location
-    table = PrettyTable(['Component', 'Parameters', 'Price'], title='Components', align='l')
-    for component in planet.shop.components:
+    table = PrettyTable(['Number', 'Component', 'Parameters', 'Price'], title='Components', align='l')
+    for n, component in enumerate(planet.shop.components):
         component_name = component.__class__.__name__
         parameter = f'Speed {component.speed}' if component_name == 'Engine' else f'Volume {component.capacity}'
         price = component.price
-        table.add_row([component_name, parameter, price])
+        table.add_row([n + 1, component_name, parameter, price])
     print(table)
 
 
