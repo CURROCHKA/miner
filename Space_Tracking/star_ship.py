@@ -86,19 +86,20 @@ class StarShip:
         else:
             print(f"Refuel is denied. There is no possibility to refuel {refuel_amount} units of fuel.")
 
-    def buy_new_component(self, component: Union[Engine, Tank], component_name: str):
+    def buy_new_component(self, component: Union[Engine, Tank]):
+        component_name = 'Engine' if isinstance(component, Engine) else 'Tank'
         shop = self.location.shop
         cost = component.price
         cost_old_component = self.engine.price if isinstance(component, Engine) else self.tank.price
         if self.is_enough_money(cost - cost_old_component):
             if self.ship_system.ComponentModule.buy_component(component, shop, self):
-                self.sale_old_component(component_name, cost_old_component)
+                self.__sale_old_component(component_name, cost_old_component)
                 self.money -= cost
                 print(f"Bought a new component - {component_name} for {cost}$. Current balance is {self.money}$.")
             else:
                 print(f"Purchase is denied. There is no possibility to buy {component_name}.")
 
-    def sale_old_component(self, component_name: str, cost: int):
+    def __sale_old_component(self, component_name: str, cost: int):
         self.money += cost
         print(f"Your {component_name} was sold for {cost}$.")
 

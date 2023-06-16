@@ -3,13 +3,14 @@ from star_ship import StarShip, Engine, Tank
 from prettytable import PrettyTable
 from time import sleep
 import re
+from typing import Union, Tuple
 
 
 def game_loop():
     while True:
         print_ships()
         print('Enter the "Next" ot "Next # (the number of moves you want to skip)" command to skip the move')
-        ship = input('Enter the name of the ship you want to interact with (or quit the game - 0): ')
+        ship = input('Enter a number of the ship you want to interact with (or quit the game - 0): ')
         if ship == '0':
             break
         if 'next' in ship:
@@ -35,10 +36,15 @@ def skip_move(command: str):
             ship.inactivity_moves = 0
 
 
-def identify_ship(ship_name: str) -> StarShip:
-    for ship in context['ships']:
-        if ship_name.lower() == ship.name.lower() and ship.inactivity_moves == 0:
-            return ship
+def identify_ship(number_ship: str) -> Union[None, StarShip]:
+    try:
+        number_ship = int(number_ship)
+    except ValueError:
+        print('\nEnter a positive integer\n')
+        return None
+    ship = context['ships'][number_ship - 1]
+    if ship.inactivity_moves == 0:
+        return ship
 
 
 def ship_activities(ship: StarShip):
@@ -47,77 +53,95 @@ def ship_activities(ship: StarShip):
         if not flag:
             break
         print_table_activities()
-        try:
-            player_input = int(input('Choose activity (Number): '))
-            if player_input == 0:
-                break
-        except ValueError:
-            print('\nEnter a positive integer\n')
-            flag = False
-            ship_activities(ship)
 
-        if not player_input > 0:
-            print('\nEnter a positive integer\n')
-            sleep(2)
-            continue
+        flag, player_input = correct_int_input('Choose activity (Number): ')
+        if not flag:
+            ship_activities(ship)
+            break
+        elif player_input == 0:
+            break
+
         elif player_input == 1:
             first_activity(ship)
         elif player_input == 2:
             second_activity(ship)
         elif player_input == 3:
             third_activity(ship)
-        # elif player_input == 4:
-        #     fourth_activity(ship)
+        elif player_input == 4:
+            fourth_activity(ship)
         elif player_input == 5:
             if fifth_activity(ship):
                 break
 
 
+def correct_int_input(msg: str) -> Union[Tuple[bool, int], Tuple[bool, None]]:
+    try:
+        inp = int(input(msg))
+    except ValueError:
+        print('Enter a positive integer')
+        return False, None
+    if inp >= 0:
+        return True, inp
+    return False, None
+
+
 def first_activity(ship: StarShip):
     while True:
-        try:
-            fuel = int(input('Enter the units of fuel you want (or choose another activity - 0): '))
-            if fuel == 0:
-                break
-        except ValueError:
+        flag, fuel = correct_int_input('Enter the units of fuel you want (or choose another activity - 0): ')
+        if not flag:
             first_activity(ship)
+            break
+        elif fuel == 0:
+            break
         ship.make_refuel(fuel)
         sleep(2)
 
 
 def second_activity(ship: StarShip):
-    flag = True
+    stock_products = ship.location.stock.products
+    products = {}
+    for i, p in enumerate(stock_products):
+        products.update({i + 1: p})
     while True:
-        if not flag:
-            break
-        print_products(ship)
-        product = input('Enter the name of the product you want to buy (or choose another activity - 0): ')
-        if product == '0':
-            break
-        try:
-            amount = int(input('Enter the amount of the product you want to buy (or choose another activity - 0): '))
-            if amount == 0:
-                break
-        except ValueError:
-            print('\nEnter a positive integer\n')
-            sleep(1)
-            flag = False
-            second_activity(ship)
+        print_products(ship, products)
 
-        products = ship.location.stock.products
-        if product in products and amount != 0:
-            ship.make_buy(product, amount)
-            sleep(2)
-            flag = False
+        flag, num_product = correct_int_input('Enter a number of the product you want to buy (or choose another '
+                                              'activity - 0): ')
+        if not flag:
             second_activity(ship)
+            break
+        elif num_product == 0:
+            break
+
+        flag, amount = correct_int_input('Enter the amount of the product you want to buy (or choose another activity '
+                                         '- 0): ')
+        if not flag:
+            second_activity(ship)
+            break
+        elif amount == 0:
+            break
+
+        if num_product in products.keys() and amount != 0:
+            ship.make_buy(products[num_product], amount)
+            sleep(2)
+            second_activity(ship)
+            break
         else:
             print('There is no such product in the list')
 
 
 def third_activity(ship: StarShip):
-    flag = True
+    stock_products = ship.location.stock.products
+    products = {}
+    for i, p in enumerate(stock_products):
+        products.update({i + 1: p})
     while True:
+        print_products(ship, products)
+
+        flag, num_product = correct_int_input(
+            'Enter a number of the product you want to sale (or choose another activity - 0): ')
         if not flag:
+<<<<<<< Updated upstream
             break
         print_products(ship)
         product = input('Enter the name of the product you want to sale (or choose another activity - 0): ')
@@ -139,22 +163,52 @@ def third_activity(ship: StarShip):
             flag = False
             third_activity(ship)
             break
+=======
+            third_activity(ship)
+            break
+        elif num_product == 0:
+            break
+        flag, amount = correct_int_input('Enter the amount of the product you want to sale (or choose another '
+                                         'activity - 0): ')
+        if not flag:
+            third_activity(ship)
+            break
+>>>>>>> Stashed changes
 
         cargo = ship.cargo_bay.cargo
+        product = products[num_product]
         if product in cargo and amount != 0:
             ship.make_sale(product, amount)
             sleep(2)
-            flag = False
             third_activity(ship)
+            break
         else:
             print('There is no such product in the list')
 
 
 def fourth_activity(ship: StarShip):
-    flag = True
+    shop_components = ship.location.shop.components
+    components = {}
+    for i, c in enumerate(shop_components):
+        components.update({i + 1: c})
     while True:
+        print_components(ship, components)
+
+        flag, num_component = correct_int_input('Enter a number of the component you want to buy (or choose another '
+                                                'activity - 0): ')
         if not flag:
+            fourth_activity(ship)
             break
+        elif num_component == 0:
+            break
+
+        component = components[num_component]
+        if component in shop_components:
+            ship.buy_new_component(component)
+            sleep(2)
+            fourth_activity(ship)
+            break
+<<<<<<< Updated upstream
         print_components(ship)
         try:
             number = int(input('Enter the number of the component you want to buy (or choose another activity - 0): '))
@@ -166,80 +220,111 @@ def fourth_activity(ship: StarShip):
             flag = False
             fourth_activity(ship)
         ...
+=======
+>>>>>>> Stashed changes
 
 
 def fifth_activity(ship: StarShip):
-    planet = ''
-    while planet != '0':
+    planets = {}
+    for i, planet in enumerate(context['planets']):
+        planets.update({i + 1: planet})
+
+    while True:
         print_planets(ship)
-        planet = input('Enter the name of the planet you want to go to (or choose another activity - 0): ')
-        if move_to_planet(planet, ship):
-            return True
+        flag, num_planet = correct_int_input('Enter a number of the planet you want to go to (or choose another '
+                                             'activity - 0): ')
+        if not flag:
+            first_activity(ship)
+            break
+        elif num_planet == 0:
+            break
+
+        planet = planets[num_planet] if planets[num_planet] is not ship.location else planets[num_planet + 1]
+        ship.move_to_planet(planet)
+        return True
     return False
 
 
-def move_to_planet(target_planet_name: str, ship: StarShip):
-    target_planet_name = target_planet_name.lower()
-    for planet in context['planets']:
-        if target_planet_name == planet.name.lower():
-            ship.move_to_planet(planet)
-            sleep(2)
-            break
-    return target_planet_name == ship.location.name.lower()
-
-
-def print_products(ship: StarShip):
-    planet = ship.location
-    table = PrettyTable(['Product', 'Stock Amount', 'Your amount', 'Price'], title='Products', align='l', padding_width=2)
-    for product in planet.stock.products:
-        if product != 'fuel':
-            stock_amount, price = planet.stock.products[product]
+def print_products(ship: StarShip, name_products: dict):
+    table = PrettyTable(['Number', 'Product', 'Stock Amount', 'Your amount', 'Price'],
+                        title='Products',
+                        align='l',
+                        padding_width=2)
+    stock_products = ship.location.stock.products
+    for num_product in name_products:
+        if name_products[num_product] != 'fuel':
+            product = name_products[num_product]
+            stock_amount, price = stock_products[product]
             ship_amount = ship.cargo_bay.cargo[product]
-            table.add_row([product.title(), stock_amount, ship_amount, price])
+            table.add_row([num_product, product.title(), stock_amount, ship_amount, price])
     print(table)
 
 
+<<<<<<< Updated upstream
 def print_components(ship: StarShip):
     planet = ship.location
     table = PrettyTable(['Number', 'Component', 'Parameters', 'Price'], title='Components', align='l')
     for n, component in enumerate(planet.shop.components):
+=======
+def print_components(ship: StarShip, components: dict):
+    table = PrettyTable(['Number', 'Component', 'Parameters', 'Parameters of your ship', 'Price'],
+                        title='Components',
+                        align='l')
+    for num_component in components:
+        component = components[num_component]
+>>>>>>> Stashed changes
         component_name = component.__class__.__name__
+        ship_parameter = f'Speed {ship.engine.speed}' if component_name == 'Engine' else f'Volume {ship.tank.capacity}'
         parameter = f'Speed {component.speed}' if component_name == 'Engine' else f'Volume {component.capacity}'
         price = component.price
+<<<<<<< Updated upstream
         table.add_row([n + 1, component_name, parameter, price])
+=======
+        table.add_row([num_component, component_name, parameter, ship_parameter, price])
+>>>>>>> Stashed changes
     print(table)
 
 
 def print_planets(ship: StarShip):
-    table = PrettyTable(['Planet', 'Distance'], title='Planets', align='l')
-    for planet in context['planets']:
-        if planet.name != ship.location.name:
+    table = PrettyTable(['Number', 'Planet', 'Distance'],
+                        title='Planets',
+                        align='l')
+    num = -1
+    for i, planet in enumerate(context['planets']):
+        if planet is not ship.location:
             distance = ship.ship_system.NavigationModule.get_distance(ship.location, planet)
-            table.add_row([planet.name, distance])
+            table.add_row([i + 1 if num == -1 else i, planet.name, distance])
+        else:
+            num = i
     print(table)
 
 
 def print_ships():
-    table = PrettyTable(['Ship', 'Status'], align='l')
-    for ship in context['ships']:
+    table = PrettyTable(['Number', 'Ship', 'Status'],
+                        align='l')
+    for i, ship in enumerate(context['ships']):
         status = f'{ship.inactivity_moves} moves remaining for "Active"' if ship.inactivity_moves > 0 else 'Active'
-        table.add_row([ship.name, status])
+        table.add_row([i + 1, ship.name, status])
     print(table)
 
 
 def print_table_activities():
-    table = PrettyTable(['Activity', 'Number'], align='l')
+    table = PrettyTable(['Number', 'Activity'],
+                        align='l')
     activities = ['Refuel', 'Buy products', 'Sale products', 'Buy components', 'Move to another planet']
     for i, activity in enumerate(activities):
-        table.add_row([activity, i + 1])
-    table.add_row(['Quit', '0'])
+        table.add_row([i + 1, activity])
+    table.add_row(['0', 'Quit'])
     print(table)
 
 
 EARTH = Planet('Earth')
-context = {'ships': [StarShip('qwerty', 1000, EARTH, Engine(1, 20), Tank(100, 50)), StarShip('Buran', 200, EARTH, Engine(2, 40), Tank(100, 50))],
+context = {'ships': [StarShip('qwerty', 1000, EARTH, Engine(1, 20), Tank(100, 50)),
+                     StarShip('Buran', 200, EARTH, Engine(2, 40), Tank(100, 50))],
            'planets': [Planet('Auropa'), EARTH, Planet('Qwerty')]}
 EARTH.shop.components.append(Engine(2, 30))
 EARTH.shop.components.append(Tank(200, 100))
 
-game_loop()
+
+if __name__ == '__main__':
+    game_loop()
