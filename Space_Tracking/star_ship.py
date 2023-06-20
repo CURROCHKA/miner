@@ -68,13 +68,14 @@ class StarShip:
         else:
             print(f"Buying is denied. There is no possibility to buy {amount} units of {product}.")
 
-    def move_to_planet(self, target_planet: Planet):
+    def move_to_planet(self, target_planet: Planet) -> bool:
         planet_name = target_planet.name
         result = self.ship_system.NavigationModule.move_to_planet(target_planet, self)
         if result:
             print(f'The ship {self.name} was sent to the planet {target_planet.name}')
         else:
-            print(f"There is no possibility to move to a planet {planet_name}.")
+            print(f"There is no possibility to move to a planet {planet_name}. You don't have enough fuel")
+        return result
 
     def make_refuel(self, refuel_amount: int):
         stock = self.location.stock
@@ -168,6 +169,7 @@ class ShipSystem:
             if not (component in shop.components):
                 return False
             if isinstance(component, Engine):
+                ship.ship_system.ComponentModule.sale_component(component, shop, ship)
                 ship.engine = component
             elif isinstance(component, Tank):
                 ship.ship_system.ComponentModule.sale_component(component, shop, ship)
