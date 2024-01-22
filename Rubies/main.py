@@ -7,7 +7,7 @@ COLORS = ['blue', 'green', 'purple', 'red', 'yellow']
 
 
 class Rubies:
-    def __init__(self):
+    def __init__(self): # Иницицализация
         pygame.init()
 
         self.WIDTH, self.HEIGHT = 1200, 600
@@ -18,12 +18,12 @@ class Rubies:
 
         pygame.display.set_caption('Rubies')
 
-    def run_game(self) -> None:
+    def run_game(self) -> None: # Запуск игрового цикла
         while True:
             self._update_screen()
             self._check_events()
 
-    def _check_events(self) -> None:
+    def _check_events(self) -> None: # Функция обработки событий
         moving = None
         moving_id = None
         ruby = None
@@ -49,7 +49,7 @@ class Rubies:
                     if ruby is not None:
                         self._check_replace(ruby, old_x, old_y)
 
-    def _check_replace(self, ruby: Ruby, old_x: int, old_y: int) -> None:
+    def _check_replace(self, ruby: Ruby, old_x: int, old_y: int) -> None: # Функция проверки наличия рубина?
         collisions = set(
             new_ruby for new_ruby in self.rubies_simple if ruby.rect.colliderect(new_ruby.rect))
         collisions = [i for i in collisions if i.id != ruby.id]
@@ -78,7 +78,7 @@ class Rubies:
             return True
         return False
 
-    def _replace_rubies(self, ruby: Ruby, new_ruby: Ruby, old_x: int, old_y: int) -> None:
+    def _replace_rubies(self, ruby: Ruby, new_ruby: Ruby, old_x: int, old_y: int) -> None: # Функция замены рубинов
         ruby.id, new_ruby.id = new_ruby.id, ruby.id
         self.rubies[ruby.id[0]][ruby.id[1]], self.rubies[new_ruby.id[0]][
             new_ruby.id[1]] = \
@@ -150,7 +150,7 @@ class Rubies:
                     color = choice(COLORS)
                 ruby.change_color(color)
 
-    def _create_rubies(self):
+    def _create_rubies(self): # Функция создания множества экземпляров класса Ruby
         ruby = Ruby(self, choice(COLORS))
         ruby_width, ruby_height = ruby.rect.size
         available_space_x = self.WIDTH - ruby_width * 2
@@ -165,7 +165,7 @@ class Rubies:
                 self._create_ruby(ruby_number, row_number)
         return number_rows, number_rubies_x
 
-    def _create_ruby(self, ruby_number, row_number):
+    def _create_ruby(self, ruby_number, row_number): # Фунцкия создания одного экземпляра класса Ruby
         ruby = Ruby(self, choice(COLORS))
         ruby.id = (row_number, ruby_number)
         ruby_width, ruby_height = ruby.rect.size
@@ -183,7 +183,7 @@ class Rubies:
             if stop:
                 break
 
-    def _update_screen(self):
+    def _update_screen(self): # Функция создания кадров
         self.screen.fill('white')
         for ruby_row in self.rubies:
             for ruby in ruby_row:
@@ -192,6 +192,6 @@ class Rubies:
         pygame.display.flip()
 
 
-if __name__ == '__main__':
+if __name__ == '__main__': # Проверка на запуск как отдельного модуля
     rubies1 = Rubies()
     rubies1.run_game()
