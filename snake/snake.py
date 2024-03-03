@@ -32,6 +32,9 @@ class Snake:
             self.snake_list.append((self.x, self.y))
         if len(self.snake_list) > self.len:
             del self.snake_list[0]
+
+    def check_collisions(self):
+        return self.len >= 2 and self.snake_list[0] in self.snake_list[1:]
     
     def draw(self, surface: pygame.Surface):
         for cell in self.snake_list:
