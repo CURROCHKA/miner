@@ -45,6 +45,11 @@ class Game:
             if event.type == pygame.KEYDOWN:
                 self.check_keydown_events(event)
 
+        if (self.snake.x, self.snake.y) == (self.fruit.x, self.fruit.y):
+            self.snake.len_of_snake += 1
+            self.fruit.x, self.fruit.y = self.create_fruit_coord()
+            self.frame += 1  # Увеличение скорости игры
+
     def check_keydown_events(self, event: pygame.event):
         key = event.key
         directions = {
