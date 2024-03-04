@@ -71,11 +71,9 @@ class Game:
             pygame.K_RIGHT: (1, 0)
         }
 
-        # TODO Змейка может проходить сквозь себя на 180 градусов
         if key in directions and self.snake.speed != 0:
             dx, dy = directions[key]
-            if (dx, dy) != (-self.snake.moving_x, -self.snake.moving_y):
-                self.snake.moving_x, self.snake.moving_y = dx, dy
+            self.snake.direction_buffer.append((dx, dy))
 
     def update_screen(self):
         self.screen.fill('gray')

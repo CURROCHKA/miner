@@ -1,4 +1,5 @@
 import pygame
+from collections import deque
 
 
 class Snake:
@@ -10,11 +11,19 @@ class Snake:
         self.moving_x, self.moving_y = 0, 0
         self.speed = 1
         self.len = 1
-
-    def __len__(self):
-        return len(self.snake_list)
+        self.direction_buffer = deque(maxlen=2)  # Буфер направлений движения змейки
+        # (можно "запомнить" максимум 2 хода змейки)
 
     def update(self, screen_rect: pygame.Rect):
+        if self.direction_buffer:
+            if self.len == 1:  # Если у змейки длина 1 - она может двигаться в любых направлениях
+                self.moving_x, self.moving_y = self.direction_buffer.popleft()
+            elif (self.direction_buffer[0][0], self.direction_buffer[0][1]) != (-self.moving_x, -self.moving_y):
+                # Проверка на совпадение первого направления в буфере с противоположным направлением змейки для того,
+                # чтобы не было поворота на 180 градусов (чтобы змейка не пошла в себя)
+                self.moving_x, self.moving_y = self.direction_buffer.popleft()
+            else:
+                self.direction_buffer.popleft()
         self.x += self.size[0] * self.moving_x * self.speed
         self.y += self.size[1] * self.moving_y * self.speed
 
@@ -35,7 +44,7 @@ class Snake:
 
     def check_collisions(self):
         return self.len >= 2 and self.snake_list[0] in self.snake_list[1:]
-    
+
     def draw(self, surface: pygame.Surface):
         for cell in self.snake_list:
             pygame.draw.rect(surface, self.color, [cell[0], cell[1], self.size[0], self.size[1]])
