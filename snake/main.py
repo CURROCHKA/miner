@@ -7,24 +7,27 @@ from fruit import Fruit
 
 class Game:
     def __init__(self):
+        pygame.init()
         self.screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
         self.screen_rect = self.screen.get_rect()
         self.screen_size = self.screen.get_size()
-        self.cell_size = (25, 25)
+        self.font_style = pygame.font.SysFont('consolas', int(self.screen_rect.w * 0.045))
+        self.cell_size = (round(self.screen_size[0] * 0.013), round(self.screen_size[1] * 0.0231))
         self.snake = Snake(self.create_snake_coord(), self.cell_size)
         self.fruit = Fruit(self.create_fruit_coord(), self.cell_size)
         self.clock = pygame.time.Clock()
         self.frame = 5
+        self.score = 0
         pygame.display.set_caption('Snake')
 
     def run(self):
         while True:
-            self.check_events()
-            self.snake.update(self.screen_rect)
-            self.update_screen()
             if self.snake.check_collisions():
                 pygame.quit()
                 sys.exit()
+            self.check_events()
+            self.snake.update(self.screen_rect)
+            self.update_screen()
 
     def create_snake_coord(self) -> tuple:
         x = int(self.screen_rect.centerx - self.screen_rect.centerx % self.cell_size[0])
@@ -55,8 +58,9 @@ class Game:
 
         if (self.snake.x, self.snake.y) == (self.fruit.x, self.fruit.y):
             self.snake.len += 1
+            self.score += 1
             self.fruit.x, self.fruit.y = self.create_fruit_coord()
-            self.frame += 1  # Увеличение скорости игры
+            self.frame += 1 if self.frame <= 15 and self.score % 3 == 0 else 0  # Увеличение скорости игры
 
     def check_keydown_events(self, event: pygame.event):
         key = event.key
@@ -75,8 +79,15 @@ class Game:
             dx, dy = directions[key]
             self.snake.direction_buffer.append((dx, dy))
 
+    def print_message(self, msg: str, color: str, pos: tuple):
+        print_msg = self.font_style.render(msg, True, color)
+        msg_rect = print_msg.get_rect()
+        msg_rect.center = pos
+        self.screen.blit(print_msg, msg_rect)
+
     def update_screen(self):
         self.screen.fill('gray')
+        self.print_message(f'Score {self.score}', 'yellow', (self.screen_rect.centerx, self.screen_rect.h * 0.04))
         self.snake.draw(self.screen)
         self.fruit.draw(self.screen)
         pygame.display.flip()
