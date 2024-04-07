@@ -4,7 +4,11 @@ from collections import deque
 
 
 class Snake:
-    def __init__(self, coord: tuple[int, int], size: tuple[int, int], color: tuple = pygame.color.THECOLORS['green']):
+    def __init__(
+            self,
+            coord: tuple[int, int],
+            size: tuple[int, int],
+            color: tuple = pygame.color.THECOLORS['green']):
         self.x, self.y = coord
         self.size = size
         self.color = color
@@ -52,7 +56,6 @@ class Snake:
     def check_collisions(self):
         counter = Counter(self.snake_list)
         return any(map(lambda x: x == 2, counter.values()))
-        # return self.len >= 4 and self.snake_list[0] in self.snake_list[1:]
 
     def draw(self, surface: pygame.Surface):
         for cell in self.snake_list:

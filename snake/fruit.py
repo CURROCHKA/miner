@@ -9,7 +9,7 @@ class Fruit:
         try:
             self.img = pygame.image.load('images/apple.png')
             self.img = pygame.transform.scale(self.img, self.size)
-        except:
+        except FileNotFoundError:
             self.img = None
 
     def draw(self, surface: pygame.Surface):

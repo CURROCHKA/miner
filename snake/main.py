@@ -27,6 +27,7 @@ class Game:
         self.clock = pygame.time.Clock()
         self.frame = 5
         self.score = 0
+        self.game_over = False
         self.snake = Snake(self._get_snake_coord(), self.cell_size)
         self.fruit = Fruit(self._get_fruit_coord(), self.cell_size)
         self.play_button = Button(
@@ -40,21 +41,33 @@ class Game:
         try:
             self.background = pygame.image.load('images/background.png').convert_alpha()
             self.background = pygame.transform.scale(self.background, self.screen_size)
-        except:
+        except FileNotFoundError:
             self.background = None
         pygame.display.set_caption('Snake')
 
     def run(self):
         while True:
             events = pygame.event.get()
-            if self.snake.check_collisions():
-                self.exit_game()
             self.check_events(events)
             self.snake.update(self.screen_size)
             self.update_screen(events)
+            if self.snake.check_collisions():
+                self.game_over = True
+                self.snake.speed = 0
+                self.play_button.setOnRelease(self.game_reset)
+                self.play_button.setText('Новая игра')
 
     def unpause(self):
         self.snake.speed = 1
+
+    def game_reset(self):
+        self.score = 0
+        self.frame = 5
+        self.game_over = False
+        self.snake = Snake(self._get_snake_coord(), self.cell_size)
+        self.fruit = Fruit(self._get_fruit_coord(), self.cell_size)
+        self.play_button.setOnRelease(self.unpause)
+        self.play_button.setText('Продолжить')
 
     @staticmethod
     def exit_game():
@@ -90,6 +103,8 @@ class Game:
             'colour': pygame.color.THECOLORS['red'],
             'borderThickness': border_thickness,
             'borderColour': pygame.color.THECOLORS['white'],
+            'pressedBorderColour': pygame.color.THECOLORS['green'],
+            'hoverBorderColour': pygame.color.THECOLORS['red']
         }
         return args
 
@@ -101,8 +116,8 @@ class Game:
         return x, y
 
     def _get_fruit_coord(self) -> tuple[int, int]:
-        space_x = int(self.screen_size[0] - self.screen_size[0] % self.cell_size[0])
-        space_y = int(self.screen_size[1] - self.screen_size[1] % self.cell_size[1])
+        space_x = int(self.screen_size[0] - self.screen_size[0] % self.cell_size[0] - self.cell_size[0])
+        space_y = int(self.screen_size[1] - self.screen_size[1] % self.cell_size[1] - self.cell_size[1])
 
         while True:
             x = randrange(0, space_x, self.cell_size[0])
@@ -139,7 +154,7 @@ class Game:
             pygame.K_RIGHT: (1, 0)
         }
 
-        if press_key == pygame.K_ESCAPE:
+        if press_key == pygame.K_ESCAPE and not self.game_over:
             self.snake.speed = 0 if self.snake.speed == 1 else 1
         if press_key in directions and self.snake.speed != 0:
             dx, dy = directions[press_key]
