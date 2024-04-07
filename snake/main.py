@@ -12,7 +12,7 @@ CELL_Y = 0.0231
 BUTTON_WIDTH = 1.15
 BUTTON_HEIGHT = 1.3
 BUTTON_RADIUS = 0.5
-BUTTON_THICKNESS = 0.003
+BUTTON_THICKNESS = 0.00275
 BUTTON_DISTANCE = 0.075
 
 
@@ -20,11 +20,10 @@ class Game:
     def __init__(self):
         pygame.init()
         self.screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
-        self.screen_rect = self.screen.get_rect()
         self.screen_size = self.screen.get_size()
         self.font_size = int(self.screen_size[0] * FONT_SIZE)
         self.font_style = pygame.font.SysFont('consolas', self.font_size)
-        self.cell_size = round(self.screen_size[0] * CELL_X), round(self.screen_size[1] * CELL_Y)
+        self.cell_size = int(self.screen_size[0] * CELL_X), int(self.screen_size[1] * CELL_Y)
         self.clock = pygame.time.Clock()
         self.frame = 5
         self.score = 0
@@ -38,6 +37,11 @@ class Game:
             onRelease=self.exit_game,
             **self._set_buttons_args('bottom', 'Выход'),
         )
+        try:
+            self.background = pygame.image.load('images/background.png').convert_alpha()
+            self.background = pygame.transform.scale(self.background, self.screen_size)
+        except:
+            self.background = None
         pygame.display.set_caption('Snake')
 
     def run(self):
@@ -61,14 +65,13 @@ class Game:
         center_x = self.screen_size[0] // 2
         center_y = self.screen_size[1] // 2
         margin_button = int(self.screen_size[1] * BUTTON_DISTANCE)
-
         size = self.font_style.size(text)
         width = int(size[0] * BUTTON_WIDTH)
         height = int(size[1] * BUTTON_HEIGHT)
         x = center_x - size[0] // 2
         y = center_y - size[1] // 2
         radius = int(size[0] * BUTTON_RADIUS)
-        border_thickness = self.screen_size[0] * BUTTON_THICKNESS
+        border_thickness = int(self.screen_size[0] * BUTTON_THICKNESS)
         if pos == 'top':
             y -= margin_button
         elif pos == 'bottom':
@@ -142,14 +145,17 @@ class Game:
             dx, dy = directions[press_key]
             self.snake.direction_buffer.append((dx, dy))
 
-    def print_message(self, msg: str, color: tuple[int, int, int, int], pos: tuple):
+    def print_message(self, msg: str, color: tuple[int, int, int, int] | tuple[int, int, int], pos: tuple):
         print_msg = self.font_style.render(msg, True, color)
         size = self.font_style.size(msg)
         rect = [pos[0], pos[1], size[0], size[1]]
         self.screen.blit(print_msg, rect)
 
     def update_screen(self, events: pygame.event):
-        self.screen.fill('gray')
+        if self.background:
+            self.screen.blit(self.background, self.background.get_rect())
+        else:
+            self.screen.fill(pygame.color.THECOLORS['gray'])
         self.print_message(
             f'Score {self.score}',
             pygame.color.THECOLORS['yellow'],

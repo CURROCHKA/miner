@@ -1,4 +1,5 @@
 import pygame
+from collections import Counter
 from collections import deque
 
 
@@ -49,7 +50,9 @@ class Snake:
             self.y = 0
 
     def check_collisions(self):
-        return self.len >= 4 and self.snake_list[0] in self.snake_list[1:]
+        counter = Counter(self.snake_list)
+        return any(map(lambda x: x == 2, counter.values()))
+        # return self.len >= 4 and self.snake_list[0] in self.snake_list[1:]
 
     def draw(self, surface: pygame.Surface):
         for cell in self.snake_list:
