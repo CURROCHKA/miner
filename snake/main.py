@@ -1,3 +1,4 @@
+import sys
 import pygame
 import pygame_widgets
 from typing import Literal
@@ -72,7 +73,7 @@ class Game:
     @staticmethod
     def exit_game():
         pygame.quit()
-        quit()
+        sys.exit()
 
     def _set_buttons_args(self, pos: Literal['top', 'bottom'], text: str = '') -> dict[str, float]:
         center_x = self.screen_size[0] // 2
