@@ -1,9 +1,11 @@
 import sys
+from random import choice, randrange
+from typing import Literal
+
 import pygame
 import pygame_widgets
-from typing import Literal
 from pygame_widgets.button import Button
-from random import randrange
+
 from snake import Snake
 from fruit import Fruit
 
@@ -141,6 +143,7 @@ class Game:
             self.fruit.x, self.fruit.y = self._get_fruit_coord()
             if self.frame <= 15 and self.score % 3 == 0:
                 self.frame += 1  # Увеличение скорости игры
+            self.snake.color = choice(list(pygame.color.THECOLORS.values()))
 
     def check_keydown_events(self, event: pygame.event.Event):
         press_key = event.key
