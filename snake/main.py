@@ -48,7 +48,7 @@ class Game:
             self.background = None
         pygame.display.set_caption('Snake')
 
-    def run(self):
+    def run(self) -> None:
         while True:
             events = pygame.event.get()
             self.check_events(events)
@@ -60,10 +60,10 @@ class Game:
                 self.play_button.setOnRelease(self.game_reset)
                 self.play_button.setText('Новая игра')
 
-    def unpause(self):
+    def unpause(self) -> None:
         self.snake.speed = 1
 
-    def game_reset(self):
+    def game_reset(self) -> None:
         self.score = 0
         self.frame = 5
         self.game_over = False
@@ -73,7 +73,7 @@ class Game:
         self.play_button.setText('Продолжить')
 
     @staticmethod
-    def exit_game():
+    def exit_game() -> None:
         pygame.quit()
         sys.exit()
 
@@ -93,7 +93,7 @@ class Game:
         elif pos == 'bottom':
             y += margin_button
 
-        args = {
+        return {
             'x': x,
             'y': y,
             'width': width,
@@ -109,7 +109,6 @@ class Game:
             'pressedBorderColour': pygame.color.THECOLORS['green'],
             'hoverBorderColour': pygame.color.THECOLORS['red']
         }
-        return args
 
     def _get_snake_coord(self) -> tuple[int, int]:
         center_x = self.screen_size[0] // 2
@@ -128,7 +127,7 @@ class Game:
             if (x, y) not in self.snake.snake_list:
                 return x, y
 
-    def check_events(self, events: pygame.event):
+    def check_events(self, events: pygame.event) -> None:
         for event in events:
             if event.type == pygame.QUIT:
                 self.exit_game()
@@ -136,7 +135,7 @@ class Game:
                 self.check_keydown_events(event)
         self.check_fruit_consume()
 
-    def check_fruit_consume(self):
+    def check_fruit_consume(self) -> None:
         if (self.snake.x, self.snake.y) == (self.fruit.x, self.fruit.y):
             self.snake.len += 1
             self.score += 1
@@ -145,7 +144,7 @@ class Game:
                 self.frame += 1  # Увеличение скорости игры
             self.snake.color = choice(list(pygame.color.THECOLORS.values()))
 
-    def check_keydown_events(self, event: pygame.event.Event):
+    def check_keydown_events(self, event: pygame.event.Event) -> None:
         press_key = event.key
         directions = {
             pygame.K_w: (0, -1),
@@ -164,13 +163,13 @@ class Game:
             dx, dy = directions[press_key]
             self.snake.direction_buffer.append((dx, dy))
 
-    def print_message(self, msg: str, color: tuple[int, int, int, int] | tuple[int, int, int], pos: tuple):
+    def print_message(self, msg: str, color: tuple[int, int, int, int] | tuple[int, int, int], pos: tuple) -> None:
         print_msg = self.font_style.render(msg, True, color)
         size = self.font_style.size(msg)
         rect = [pos[0], pos[1], size[0], size[1]]
         self.screen.blit(print_msg, rect)
 
-    def update_screen(self, events: pygame.event):
+    def update_screen(self, events: pygame.event) -> None:
         if self.background:
             self.screen.blit(self.background, self.background.get_rect())
         else:

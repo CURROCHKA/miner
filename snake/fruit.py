@@ -12,7 +12,7 @@ class Fruit:
         except FileNotFoundError:
             self.img = None
 
-    def draw(self, surface: pygame.Surface):
+    def draw(self, surface: pygame.Surface) -> None:
         if self.img:
             surface.blit(self.img, [(self.x, self.y), self.size])
         else:

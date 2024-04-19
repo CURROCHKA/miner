@@ -19,7 +19,7 @@ class Snake:
         self.direction_buffer = deque(maxlen=2)  # Буфер направлений движения змейки
         # (можно "запомнить" максимум 2 хода змейки)
 
-    def update(self, screen_size: tuple[int, int]):
+    def update(self, screen_size: tuple[int, int]) -> None:
         if self.direction_buffer:
             if self.len == 1:  # Если у змейки длина 1 - она может двигаться в любых направлениях
                 self.moving_x, self.moving_y = self.direction_buffer.popleft()
@@ -39,7 +39,7 @@ class Snake:
         if len(self.snake_list) > self.len:
             del self.snake_list[0]
 
-    def _check_edges(self, screen_size: tuple[int, int]):
+    def _check_edges(self, screen_size: tuple[int, int]) -> None:
         width = screen_size[0]
         height = screen_size[1]
         leftover_x = width % self.size[0]
@@ -53,11 +53,11 @@ class Snake:
         elif self.y >= height - leftover_y:
             self.y = 0
 
-    def check_collisions(self):
+    def check_collisions(self) -> bool:
         counter = Counter(self.snake_list)
         return any(map(lambda x: x == 2, counter.values()))
 
-    def draw(self, surface: pygame.Surface):
+    def draw(self, surface: pygame.Surface) -> None:
         for cell in self.snake_list:
             rect = [cell[0], cell[1], self.size[0], self.size[1]]
             pygame.draw.rect(surface, self.color, rect)
