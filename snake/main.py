@@ -2,21 +2,12 @@ import sys
 from random import choice, randrange
 from typing import Literal
 
-import pygame
 import pygame_widgets
 from pygame_widgets.button import Button
 
+from config import *
 from snake import Snake
 from fruit import Fruit
-
-FONT_SIZE = 0.045
-CELL_X = 0.013
-CELL_Y = 0.0231
-BUTTON_WIDTH = 1.15
-BUTTON_HEIGHT = 1.3
-BUTTON_RADIUS = 0.5
-BUTTON_THICKNESS = 0.00275
-BUTTON_DISTANCE = 0.075
 
 
 class Game:
@@ -35,15 +26,15 @@ class Game:
         self.fruit = Fruit(self._get_fruit_coord(), self.cell_size)
         self.play_button = Button(
             onRelease=self.unpause,
-            **self._set_buttons_args('top', 'Продолжить'),
+            **self._set_buttons_args(pos='top', text='Продолжить'),
         )
         self.quit_button = Button(
             onRelease=self.exit_game,
-            **self._set_buttons_args('bottom', 'Выход'),
+            **self._set_buttons_args(pos='bottom', text='Выход'),
         )
         try:
             self.background = pygame.image.load('images/background.png').convert_alpha()
-            self.background = pygame.transform.scale(self.background, self.screen_size)
+            self.background = pygame.transform.scale(surface=self.background, size=self.screen_size)
         except FileNotFoundError:
             self.background = None
         pygame.display.set_caption('Snake')
@@ -54,14 +45,14 @@ class Game:
             self.check_events(events)
             self.snake.update(self.screen_size)
             self.update_screen(events)
-            if self.snake.check_collisions():
+            if self.snake.check_intersection():
                 self.game_over = True
-                self.snake.speed = 0
+                self.snake.moving = 0
                 self.play_button.setOnRelease(self.game_reset)
                 self.play_button.setText('Новая игра')
 
     def unpause(self) -> None:
-        self.snake.speed = 1
+        self.snake.moving = 1
 
     def game_reset(self) -> None:
         self.score = 0
@@ -102,12 +93,12 @@ class Game:
             'radius': radius,
             'win': self.screen,
             'font': self.font_style,
-            'textColour': pygame.color.THECOLORS['white'],
-            'colour': pygame.color.THECOLORS['red'],
+            'textColour': Colors.WHITE.value,
+            'colour': Colors.RED.value,
             'borderThickness': border_thickness,
-            'borderColour': pygame.color.THECOLORS['white'],
-            'pressedBorderColour': pygame.color.THECOLORS['green'],
-            'hoverBorderColour': pygame.color.THECOLORS['red']
+            'borderColour': Colors.WHITE.value,
+            'pressedBorderColour': Colors.GREEN.value,
+            'hoverBorderColour': Colors.RED.value,
         }
 
     def _get_snake_coord(self) -> tuple[int, int]:
@@ -124,7 +115,7 @@ class Game:
         while True:
             x = randrange(0, space_x, self.cell_size[0])
             y = randrange(0, space_y, self.cell_size[1])
-            if (x, y) not in self.snake.snake_list:
+            if (x, y) not in self.snake.elements:
                 return x, y
 
     def check_events(self, events: pygame.event) -> None:
@@ -136,51 +127,57 @@ class Game:
         self.check_fruit_consume()
 
     def check_fruit_consume(self) -> None:
-        if (self.snake.x, self.snake.y) == (self.fruit.x, self.fruit.y):
-            self.snake.len += 1
+        head_coord = self.snake.elements[0]
+        if head_coord == (self.fruit.x, self.fruit.y):
+            self.snake.add_elem()
             self.score += 1
             self.fruit.x, self.fruit.y = self._get_fruit_coord()
             if self.frame <= 15 and self.score % 3 == 0:
                 self.frame += 1  # Увеличение скорости игры
-            self.snake.color = choice(list(pygame.color.THECOLORS.values()))
+            self.snake.color = choice([color.value for color in Colors])
 
     def check_keydown_events(self, event: pygame.event.Event) -> None:
         press_key = event.key
         directions = {
-            pygame.K_w: (0, -1),
-            pygame.K_UP: (0, -1),
-            pygame.K_a: (-1, 0),
-            pygame.K_LEFT: (-1, 0),
-            pygame.K_s: (0, 1),
-            pygame.K_DOWN: (0, 1),
-            pygame.K_d: (1, 0),
-            pygame.K_RIGHT: (1, 0)
+            pygame.K_w: (0, -1),  # Вверх
+            pygame.K_UP: (0, -1),  # Вверх
+            pygame.K_a: (-1, 0),  # Влево
+            pygame.K_LEFT: (-1, 0),  # Влево
+            pygame.K_s: (0, 1),  # Вниз
+            pygame.K_DOWN: (0, 1),  # Вниз
+            pygame.K_d: (1, 0),  # Вправо
+            pygame.K_RIGHT: (1, 0)  # Вправо
         }
 
         if press_key == pygame.K_ESCAPE and not self.game_over:
-            self.snake.speed = 0 if self.snake.speed == 1 else 1
-        if press_key in directions and self.snake.speed != 0:
+            self.snake.moving = 0 if self.snake.moving == 1 else 1
+        if press_key in directions and self.snake.moving != 0:
             dx, dy = directions[press_key]
             self.snake.direction_buffer.append((dx, dy))
 
-    def print_message(self, msg: str, color: tuple[int, int, int, int] | tuple[int, int, int], pos: tuple) -> None:
+    def print_message(
+            self,
+            msg: str,
+            color: tuple[int, int, int, int] | tuple[int, int, int],
+            pos: tuple
+    ) -> None:
         print_msg = self.font_style.render(msg, True, color)
         size = self.font_style.size(msg)
         rect = [pos[0], pos[1], size[0], size[1]]
-        self.screen.blit(print_msg, rect)
+        self.screen.blit(source=print_msg, dest=rect)
 
     def update_screen(self, events: pygame.event) -> None:
         if self.background:
-            self.screen.blit(self.background, self.background.get_rect())
+            self.screen.blit(source=self.background, dest=self.background.get_rect())
         else:
-            self.screen.fill(pygame.color.THECOLORS['gray'])
+            self.screen.fill(color=Colors.GRAY.value)
         self.print_message(
-            f'Score {self.score}',
-            pygame.color.THECOLORS['yellow'],
-            (self.screen_size[0] // 2 - self.font_style.size('Score')[0] // 2, 0))
+            msg=f'Score {self.score}',
+            color=Colors.YELLOW.value,
+            pos=(self.screen_size[0] // 2 - self.font_style.size('Score')[0] // 2, 0))
         self.snake.draw(self.screen)
         self.fruit.draw(self.screen)
-        if self.snake.speed != 0:
+        if self.snake.moving != 0:
             self.clock.tick(self.frame)
         else:
             pygame_widgets.update(events)

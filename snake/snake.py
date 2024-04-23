@@ -1,63 +1,74 @@
-import pygame
-from collections import Counter
 from collections import deque
+from config import Colors
+
+import pygame
 
 
 class Snake:
     def __init__(
             self,
-            coord: tuple[int, int],
+            head_coord: tuple[int, int],
             size: tuple[int, int],
-            color: tuple = pygame.color.THECOLORS['green']):
-        self.x, self.y = coord
-        self.size = size
+            color: tuple[int, int, int, int] = Colors.GREEN.value
+    ):
+        self.cell_size = size
         self.color = color
-        self.snake_list = [(self.x, self.y)]
+        self.elements = [head_coord]
         self.moving_x, self.moving_y = 0, 0
-        self.speed = 1
-        self.len = 1
+        self.moving = 1
         self.direction_buffer = deque(maxlen=2)  # Буфер направлений движения змейки
         # (можно "запомнить" максимум 2 хода змейки)
 
     def update(self, screen_size: tuple[int, int]) -> None:
+        if self.moving:
+            self.direction_update()
+            elements_copy = self.elements.copy()
+            head_x, head_y = self.elements[0]
+            head_x += self.cell_size[0] * self.moving_x
+            head_y += self.cell_size[1] * self.moving_y
+            self.elements[0] = (head_x, head_y)
+            for i in range(1, len(self.elements)):
+                self.elements[i] = elements_copy[i - 1]
+            self._check_edges(screen_size)
+
+    def direction_update(self):
         if self.direction_buffer:
-            if self.len == 1:  # Если у змейки длина 1 - она может двигаться в любых направлениях
+            if len(self.elements) == 1:  # Если у змейки длина 1 - она может двигаться в любых направлениях
                 self.moving_x, self.moving_y = self.direction_buffer.popleft()
             elif (self.direction_buffer[0][0], self.direction_buffer[0][1]) != (-self.moving_x, -self.moving_y):
-                # Проверка на совпадение первого направления в буфере с противоположным направлением змейки для того,
-                # чтобы не было поворота на 180 градусов (чтобы змейка не пошла в себя)
+                # Проверка на совпадение первого направления в буфере с противоположным направлением змейки для
+                # того, чтобы не было поворота на 180 градусов (чтобы змейка не пошла в себя)
                 self.moving_x, self.moving_y = self.direction_buffer.popleft()
             else:
                 self.direction_buffer.popleft()
-        self.x += self.size[0] * self.moving_x * self.speed
-        self.y += self.size[1] * self.moving_y * self.speed
-        self._check_edges(screen_size)
 
-        # ОБНОВЛЕНИЕ snake_list путем добавления ячейки змеи в список и удаление, если фактическая длина змеи меньше
-        if self.speed == 1:
-            self.snake_list.append((self.x, self.y))
-        if len(self.snake_list) > self.len:
-            del self.snake_list[0]
+    def add_elem(self):
+        head_x, head_y = self.elements[0]
+        x, y = (head_x - self.cell_size[0] * self.moving_x, head_y - self.cell_size[1] * self.moving_y)
+        self.elements.append((x, y))
 
     def _check_edges(self, screen_size: tuple[int, int]) -> None:
         width = screen_size[0]
         height = screen_size[1]
-        leftover_x = width % self.size[0]
-        leftover_y = height % self.size[1]
-        if self.x < 0:
-            self.x = width - leftover_x - self.size[0]
-        elif self.x >= width - leftover_x:
-            self.x = 0
-        if self.y < 0:
-            self.y = height - leftover_y - self.size[1]
-        elif self.y >= height - leftover_y:
-            self.y = 0
+        leftover_x = width % self.cell_size[0]
+        leftover_y = height % self.cell_size[1]
+        head_x, head_y = self.elements[0]
+        if head_x < 0:
+            head_x = width - leftover_x - self.cell_size[0]
+        elif head_x >= width - leftover_x:
+            head_x = 0
+        if head_y < 0:
+            head_y = height - leftover_y - self.cell_size[1]
+        elif head_y >= height - leftover_y:
+            head_y = 0
+        self.elements[0] = (head_x, head_y)
 
-    def check_collisions(self) -> bool:
-        counter = Counter(self.snake_list)
-        return any(map(lambda x: x == 2, counter.values()))
+    def check_intersection(self) -> bool:
+        return len(self.elements) >= 4 and self.elements[0] in self.elements[1::]  # Змейка длиной <= 4 не может себя
+        # съесть
 
     def draw(self, surface: pygame.Surface) -> None:
-        for cell in self.snake_list:
-            rect = [cell[0], cell[1], self.size[0], self.size[1]]
-            pygame.draw.rect(surface, self.color, rect)
+        for elem in self.elements:
+            x, y = elem
+            rect = [x, y, self.cell_size[0], self.cell_size[1]]
+            pygame.draw.rect(surface=surface, color=self.color, rect=rect)
