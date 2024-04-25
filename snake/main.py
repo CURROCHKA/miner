@@ -2,10 +2,11 @@ import sys
 from random import choice, randrange
 from typing import Literal
 
+import pygame
 import pygame_widgets
 from pygame_widgets.button import Button
 
-from config import *
+from config import Colors, Directions, constants
 from snake import Snake
 from fruit import Fruit
 
@@ -15,9 +16,9 @@ class Game:
         pygame.init()
         self.screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
         self.screen_size = self.screen.get_size()
-        self.font_size = int(self.screen_size[0] * FONT_SIZE)
+        self.font_size = int(self.screen_size[0] * constants['FONT_SIZE'])
         self.font_style = pygame.font.SysFont('consolas', self.font_size)
-        self.cell_size = int(self.screen_size[0] * CELL_X), int(self.screen_size[1] * CELL_Y)
+        self.cell_size = int(self.screen_size[0] * constants['CELL_X']), int(self.screen_size[1] * constants['CELL_Y'])
         self.clock = pygame.time.Clock()
         self.frame = 5
         self.score = 0
@@ -71,14 +72,14 @@ class Game:
     def _set_buttons_args(self, pos: Literal['top', 'bottom'], text: str = '') -> dict[str, float]:
         center_x = self.screen_size[0] // 2
         center_y = self.screen_size[1] // 2
-        margin_button = int(self.screen_size[1] * BUTTON_DISTANCE)
+        margin_button = int(self.screen_size[1] * constants['BUTTON_DISTANCE'])
         size = self.font_style.size(text)
-        width = int(size[0] * BUTTON_WIDTH)
-        height = int(size[1] * BUTTON_HEIGHT)
+        width = int(size[0] * constants['BUTTON_WIDTH'])
+        height = int(size[1] * constants['BUTTON_HEIGHT'])
         x = center_x - size[0] // 2
         y = center_y - size[1] // 2
-        radius = int(size[0] * BUTTON_RADIUS)
-        border_thickness = int(self.screen_size[0] * BUTTON_THICKNESS)
+        radius = int(size[0] * constants['BUTTON_RADIUS'])
+        border_thickness = int(self.screen_size[0] * constants['BUTTON_THICKNESS'])
         if pos == 'top':
             y -= margin_button
         elif pos == 'bottom':
@@ -129,7 +130,7 @@ class Game:
     def check_fruit_consume(self) -> None:
         head_coord = self.snake.elements[0]
         if head_coord == (self.fruit.x, self.fruit.y):
-            self.snake.add_elem()
+            self.snake.add_element()
             self.score += 1
             self.fruit.x, self.fruit.y = self._get_fruit_coord()
             if self.frame <= 15 and self.score % 3 == 0:
@@ -139,14 +140,14 @@ class Game:
     def check_keydown_events(self, event: pygame.event.Event) -> None:
         press_key = event.key
         directions = {
-            pygame.K_w: (0, -1),  # Вверх
-            pygame.K_UP: (0, -1),  # Вверх
-            pygame.K_a: (-1, 0),  # Влево
-            pygame.K_LEFT: (-1, 0),  # Влево
-            pygame.K_s: (0, 1),  # Вниз
-            pygame.K_DOWN: (0, 1),  # Вниз
-            pygame.K_d: (1, 0),  # Вправо
-            pygame.K_RIGHT: (1, 0)  # Вправо
+            pygame.K_w: Directions.UP.value,  # Вверх
+            pygame.K_UP: Directions.UP.value,  # Вверх
+            pygame.K_a: Directions.LEFT.value,  # Влево
+            pygame.K_LEFT: Directions.LEFT.value,  # Влево
+            pygame.K_s: Directions.DOWN.value,  # Вниз
+            pygame.K_DOWN: Directions.DOWN.value,  # Вниз
+            pygame.K_d: Directions.RIGHT.value,  # Вправо
+            pygame.K_RIGHT: Directions.RIGHT.value  # Вправо
         }
 
         if press_key == pygame.K_ESCAPE and not self.game_over:
@@ -158,7 +159,7 @@ class Game:
     def print_message(
             self,
             msg: str,
-            color: tuple[int, int, int, int] | tuple[int, int, int],
+            color: tuple[int, ...],
             pos: tuple
     ) -> None:
         print_msg = self.font_style.render(msg, True, color)

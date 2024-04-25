@@ -9,7 +9,7 @@ class Snake:
             self,
             head_coord: tuple[int, int],
             size: tuple[int, int],
-            color: tuple[int, int, int, int] = Colors.GREEN.value
+            color: tuple[int, ...] = Colors.GREEN.value
     ):
         self.cell_size = size
         self.color = color
@@ -28,7 +28,8 @@ class Snake:
             head_y += self.cell_size[1] * self.moving_y
             self.elements[0] = (head_x, head_y)
             for i in range(1, len(self.elements)):
-                self.elements[i] = elements_copy[i - 1]
+                self.elements[i] = elements_copy[i - 1]  # Каждый элемент змейки двигается на место впередистоящего
+                # элемента
             self._check_edges(screen_size)
 
     def direction_update(self):
@@ -42,7 +43,7 @@ class Snake:
             else:
                 self.direction_buffer.popleft()
 
-    def add_elem(self):
+    def add_element(self):
         head_x, head_y = self.elements[0]
         x, y = (head_x - self.cell_size[0] * self.moving_x, head_y - self.cell_size[1] * self.moving_y)
         self.elements.append((x, y))
@@ -68,7 +69,7 @@ class Snake:
         # съесть
 
     def draw(self, surface: pygame.Surface) -> None:
-        for elem in self.elements:
-            x, y = elem
+        for element in self.elements:
+            x, y = element
             rect = [x, y, self.cell_size[0], self.cell_size[1]]
             pygame.draw.rect(surface=surface, color=self.color, rect=rect)

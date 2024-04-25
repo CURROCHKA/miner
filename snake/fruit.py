@@ -7,7 +7,7 @@ class Fruit:
             self,
             coord: tuple[int, int],
             size: tuple[int, int],
-            color: tuple[int, int, int, int] = Colors.RED.value
+            color: tuple[int, ...] = Colors.RED.value
     ):
         self.x, self.y = coord
         self.size = size
