@@ -6,8 +6,18 @@ import pygame
 import pygame_widgets
 from pygame_widgets.button import Button
 
-import config
-from config import Colors, Directions
+from config import (
+    FONT_SIZE,
+    CELL_X,
+    CELL_Y,
+    BUTTON_DISTANCE,
+    BUTTON_WIDTH,
+    BUTTON_HEIGHT,
+    BUTTON_RADIUS,
+    BUTTON_THICKNESS,
+    Colors,
+    Directions
+)
 from snake import Snake
 from fruit import Fruit
 
@@ -17,9 +27,9 @@ class Game:
         pygame.init()
         self.screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
         self.screen_size = self.screen.get_size()
-        self.font_size = int(self.screen_size[0] * config.FONT_SIZE)
+        self.font_size = int(self.screen_size[0] * FONT_SIZE)
         self.font_style = pygame.font.SysFont('consolas', self.font_size)
-        self.cell_size = int(self.screen_size[0] * config.CELL_X), int(self.screen_size[1] * config.CELL_Y)
+        self.cell_size = int(self.screen_size[0] * CELL_X), int(self.screen_size[1] * CELL_Y)
         self.clock = pygame.time.Clock()
         self.frame = 5
         self.score = 0
@@ -73,14 +83,14 @@ class Game:
     def _set_buttons_args(self, pos: Literal['top', 'bottom'], text: str = '') -> dict[str, float]:
         center_x = self.screen_size[0] // 2
         center_y = self.screen_size[1] // 2
-        margin_button = int(self.screen_size[1] * config.BUTTON_DISTANCE)
+        margin_button = int(self.screen_size[1] * BUTTON_DISTANCE)
         size = self.font_style.size(text)
-        width = int(size[0] * config.BUTTON_WIDTH)
-        height = int(size[1] * config.BUTTON_HEIGHT)
+        width = int(size[0] * BUTTON_WIDTH)
+        height = int(size[1] * BUTTON_HEIGHT)
         x = center_x - size[0] // 2
         y = center_y - size[1] // 2
-        radius = int(size[0] * config.BUTTON_RADIUS)
-        border_thickness = int(self.screen_size[0] * config.BUTTON_THICKNESS)
+        radius = int(size[0] * BUTTON_RADIUS)
+        border_thickness = int(self.screen_size[0] * BUTTON_THICKNESS)
         if pos == 'top':
             y -= margin_button
         elif pos == 'bottom':
