@@ -1,16 +1,16 @@
 import pygame
 
 
-LINE_WIDTH = 0.00234
+
 
 
 class Field:
-    def __init__(self, window: pygame.Surface, cell_size: tuple[int, int]):
+    def __init__(self, window: pygame.Surface, cell_size: tuple[int, int], line_width: int):
         self.window = window
         self.window_size = self.window.get_size()
         self.window_width, self.window_height = self.window_size[0], self.window_size[1]
         self.cell_size = cell_size
-        self.line_width = int(self.window_width * LINE_WIDTH)
+        self.line_width = line_width
 
     def draw(self) -> None:
         cell_x, cell_y = self.cell_size[0], self.cell_size[1]

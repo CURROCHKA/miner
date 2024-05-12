@@ -1,11 +1,15 @@
 import pygame
 from field import Field
+from circle import Circle
+from cross import Cross
 
 
 WINDOW_WIDTH = 0.66
 WINDOW_HEIGHT = 0.74
 CELL_X = 0.15625
 CELL_Y = 0.25
+LINE_WIDTH = 0.0039
+CIRCLE_WIDTH = 0.00234
 
 
 class Game:
@@ -17,7 +21,9 @@ class Game:
         self.window_height = int(self.display_size[1] * WINDOW_HEIGHT)
         self.window = pygame.display.set_mode((self.window_width, self.window_height))  # Создаю экран примерно 1280X800
         self.cell_size = self.get_cell_size()
-        self.field = Field(self.window, self.cell_size)
+        self.field = Field(self.window, self.cell_size, self.get_field_width())
+        self.cross = Cross(self.window, 300, 300, self.cell_size, self.get_field_width())
+        self.circle = Circle(self.window, 300, 300, self.get_circle_radius(), self.get_field_width())
 
     def run(self) -> None:
         while True:
@@ -33,12 +39,20 @@ class Game:
     def update_screen(self) -> None:
         self.window.fill('gray')
         self.field.draw()
+        self.cross.draw()
+        self.circle.draw()
         pygame.display.update()
 
     def get_cell_size(self) -> tuple[int, int]:
         cell_x = int(self.window_width * CELL_X)
         cell_y = int(self.window_height * CELL_Y)
         return cell_x, cell_y
+
+    def get_field_width(self) -> int:
+        return round(self.window_width * LINE_WIDTH)
+
+    def get_circle_radius(self) -> int:
+        return int(self.cell_size[0] / 2)
 
 
 if __name__ == '__main__':
