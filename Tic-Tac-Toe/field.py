@@ -13,6 +13,7 @@ class Field:
         self.cell_x, self.cell_y = cell_size
         self.line_width = line_width
         self.field_size = self.get_available_space()
+        self.is_move_done = False
         self.buttons = ButtonArray(
             **self.get_buttons_params()
         )
@@ -53,4 +54,13 @@ class Field:
             'shape': [3, 3],
             'border': 0,
             'inactiveColours': ['gray'] * 9,
+            'fontSizes': [self.cell_x] * 9,
         }
+
+    def update(self, player: str):
+        self.is_move_done = False
+        for button in self.buttons.getButtons():
+            if button.clicked and button.string == '':
+                button.setText(player)
+                self.is_move_done = True
+

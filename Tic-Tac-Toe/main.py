@@ -1,7 +1,7 @@
 import pygame
 from field import Field
-from circle import Circle
-from cross import Cross
+
+from random import choice
 
 
 WINDOW_WIDTH = 0.66
@@ -23,25 +23,25 @@ class Game:
         self.cell_size = self.get_cell_size()
         self.line_width = self.get_line_width()
         self.field = Field(self.window, self.cell_size, self.line_width)
-        # self.cross = Cross(self.window, 300, 300, self.cell_size, self.get_line_width())
-        # self.circle = Circle(self.window, 300, 300, self.get_circle_radius(), self.get_line_width())
+        self.player = choice(['x', 'o'])
 
     def run(self) -> None:
         while True:
             self.check_events()
+            self.field.update(self.player)
             self.update_screen()
+            self.switch_turn()
 
-    def check_events(self) -> None:
+    @staticmethod
+    def check_events() -> None:
         for event in pygame.event.get():
-            if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE or event.type == pygame.QUIT:
+            if event.type == pygame.QUIT:
                 pygame.quit()
                 quit()
 
     def update_screen(self) -> None:
         self.window.fill('gray')
         self.field.draw()
-        # self.cross.draw()
-        # self.circle.draw()
         pygame.display.update()
 
     def get_cell_size(self) -> tuple[int, int]:
@@ -54,6 +54,10 @@ class Game:
 
     def get_circle_radius(self) -> int:
         return int(self.cell_size[0] / 2)
+
+    def switch_turn(self):
+        if self.field.is_move_done:
+            self.player = 'x' if self.player == 'o' else 'o'
 
 
 if __name__ == '__main__':
