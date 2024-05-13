@@ -57,10 +57,44 @@ class Field:
             'fontSizes': [self.cell_x] * 9,
         }
 
-    def update(self, player: str):
+    def update(self, player: str) -> None:
         self.is_move_done = False
         for button in self.buttons.getButtons():
             if button.clicked and button.string == '':
                 button.setText(player)
                 self.is_move_done = True
 
+    def check_columns(self):
+        buttons = self.buttons.getButtons()
+        for i in range(0, len(buttons), 3):
+            seq = [button.string for button in buttons[i: i + 3]]
+            if self.check_sequence(seq):
+                return True
+        return False
+
+    def check_rows(self):
+        buttons = self.buttons.getButtons()
+        for i in range(len(buttons) - 6):
+            seq = [buttons[i].string, buttons[i + 3].string, buttons[i + 6].string]
+            if self.check_sequence(seq):
+                return True
+        return False
+
+    def check_diagonals(self) -> bool:
+        buttons = self.buttons.getButtons()
+        seq = [buttons[0].string, buttons[4].string, buttons[8].string]
+        if self.check_sequence(seq):
+            return True
+
+        seq = [buttons[6].string, buttons[4].string, buttons[2].string]
+        if self.check_sequence(seq):
+            return True
+        return False
+
+    @staticmethod
+    def check_sequence(seq) -> bool:
+        set_seq = set(seq)
+        return set_seq != {''} and len(set_seq) == 1
+
+    def check_field(self) -> bool:
+        return self.check_columns() or self.check_rows() or self.check_diagonals()

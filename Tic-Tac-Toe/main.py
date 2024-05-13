@@ -27,10 +27,10 @@ class Game:
 
     def run(self) -> None:
         while True:
+            self.switch_turn()
             self.check_events()
             self.field.update(self.player)
             self.update_screen()
-            self.switch_turn()
 
     @staticmethod
     def check_events() -> None:
