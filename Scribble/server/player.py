@@ -1,15 +1,21 @@
+from game import Game
+
+
 class Player:
-    def __init__(self, ip, name):
+    def __init__(self, ip, name: str):
         self.game = None
         self.ip = ip
         self.name = name
         self.score = 0
 
-    def update_score(self, score: int):
+    def set_game(self, game: Game) -> None:
+        self.game = game
+
+    def update_score(self, score: int) -> None:
         self.score += score
 
-    def guess(self):
-        pass
+    def guess(self, word: str) -> bool:
+        return self.game.player_guess(self, word)
 
     def disconnect(self):
         pass
