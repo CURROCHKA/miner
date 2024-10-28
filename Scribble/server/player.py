@@ -17,8 +17,8 @@ class Player:
     def guess(self, word: str) -> bool:
         return self.game.player_guess(self, word)
 
-    def disconnect(self):
-        pass
+    def disconnect(self) -> None:
+        self.game.player_disconnect(self)
 
     def get_ip(self):
         return self.ip
