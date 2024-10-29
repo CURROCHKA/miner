@@ -1,6 +1,3 @@
-from game import Game
-
-
 class Player:
     def __init__(self, ip, name: str):
         self.game = None
@@ -8,7 +5,7 @@ class Player:
         self.name = name
         self.score = 0
 
-    def set_game(self, game: Game) -> None:
+    def set_game(self, game) -> None:
         self.game = game
 
     def update_score(self, score: int) -> None:

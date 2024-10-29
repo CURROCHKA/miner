@@ -1,3 +1,6 @@
+from config import Color
+
+
 class Board:
     def __init__(self, x: float, y: float, grid_size: tuple[int, int], cell_size: tuple[int, int]):
         self.x = x
@@ -8,11 +11,12 @@ class Board:
         self.width = self.grid_size[0] * self.cell_size[0]
         self.height = self.grid_size[1] * self.cell_size[1]
 
-    def update(self, x: int, y: int, color: tuple[int, int, int]):
+    def update(self, x: int, y: int, color: tuple[int, int, int] | int):
         self.grid[y][x] = color
 
-    def create_empty_board(self) -> list[list[tuple[int, int, int]]]:
-        return [[(255, 255, 255) for _ in range(self.grid_size[1]) for _ in range(self.grid_size[0])]]
+    def create_empty_board(self) -> list[list[int]]:
+        color = list(Color.WHITE.value.keys())[0]
+        return [[color for _ in range(self.grid_size[0])] for _ in range(self.grid_size[1])]
 
     def clear(self):
         self.grid = self.create_empty_board()

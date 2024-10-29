@@ -1,8 +1,5 @@
-from round import Round
-
-
 class Chat:
-    def __init__(self, rnd: Round):
+    def __init__(self, rnd):
         self.content = []
         self.round = rnd
 

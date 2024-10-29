@@ -13,25 +13,30 @@ from config import (
 
 
 class Game:
-    def __init__(self, game_id: int, thread):
+    def __init__(self, game_id: int, players: list[Player]):
         self.id = game_id
-        self.players = []
+        self.players = players
         self.words_used = set()
         self.round = None
         self.board = None
         self.player_draw_ind = 0
-        self.connected_thread = thread
+        self.round_count = 0
         self.start_new_round()
         self.create_board()
 
     def start_new_round(self) -> None:
-        round_word = self.get_word()
-        self.words_used.add(round_word)
-        self.round = Round(self.get_word(), self.players[self.player_draw_ind], self.players, self)
-        self.player_draw_ind += 1
+        try:
+            round_word = self.get_word()
+            self.words_used.add(round_word)
+            self.round = Round(self.get_word(), self.players[self.player_draw_ind], self)
+            self.round_count += 1
 
-        if self.player_draw_ind >= len(self.players):
-            self.round.end_round('')
+            if self.player_draw_ind >= len(self.players):
+                self.round_ended()
+                self.end_game()
+
+            self.player_draw_ind += 1
+        except:
             self.end_game()
 
     def create_board(self):
@@ -49,7 +54,7 @@ class Game:
     def player_guess(self, player: Player, word: str):
         return self.round.guess(player, word)
 
-    def player_disconnect(self, player: Player):
+    def player_disconnected(self, player: Player):
         if player in self.players:
             player_ind = self.players.index(player)
             if player_ind >= self.player_draw_ind:
@@ -62,11 +67,17 @@ class Game:
         if len(self.players) <= 2:
             self.end_game()
 
+    def get_player_scores(self) -> dict[str, int]:
+        scores = {player.name: player.get_score() for player in self.players}
+        return scores
+
     def skip(self):
         if self.round:
             new_round = self.round.skip()
             if new_round:
                 self.round_ended()
+                return True
+            return False
         else:
             raise Exception('No round started yet!')
 
@@ -81,11 +92,13 @@ class Game:
             raise Exception('No board created')
 
     def end_game(self):
+        print(f'[GAME] Game {self.id} ended')
         for player in self.players:
-            self.round.player_left(player)
+            player.game = None
+            # self.round.player_left(player)
 
     def get_word(self) -> str:
-        with open('words.txt', 'r') as f:
+        with open('Scribble/server/words.txt', 'r') as f:
             words = []
 
             for line in f:
@@ -94,5 +107,5 @@ class Game:
                     words.append(word)
             self.words_used.add(word)
 
-            r = randint(0, len(words))
+            r = randint(0, len(words) - 1)
             return words[r]
