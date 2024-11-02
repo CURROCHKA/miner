@@ -3,13 +3,6 @@ from random import randint
 from player import Player
 from board import Board
 from round import Round
-from config import (
-    WIDTH,
-    HEIGHT,
-    HORIZONTAL_MARGIN,
-    VERTICAL_MARGIN,
-    GRID_SIZE
-)
 
 
 class Game:
@@ -18,11 +11,10 @@ class Game:
         self.players = players
         self.words_used = set()
         self.round = None
-        self.board = None
+        self.board = Board()
         self.player_draw_ind = 0
         self.round_count = 0
         self.start_new_round()
-        self.create_board()
 
     def start_new_round(self) -> None:
         try:
@@ -38,18 +30,6 @@ class Game:
             self.player_draw_ind += 1
         except:
             self.end_game()
-
-    def create_board(self):
-        horizontal_margin = WIDTH / HORIZONTAL_MARGIN
-        vertical_margin = HEIGHT / VERTICAL_MARGIN
-        cell_size = (
-            (WIDTH - horizontal_margin * 2) / GRID_SIZE[0],
-            (HEIGHT - vertical_margin) / GRID_SIZE[1]
-        )
-        self.board = Board(x=horizontal_margin,
-                           y=vertical_margin,
-                           grid_size=GRID_SIZE,
-                           cell_size=cell_size)
 
     def player_guess(self, player: Player, word: str):
         return self.round.guess(player, word)

@@ -14,7 +14,8 @@ class Server:
         self.connection_queue = []
         self.game_id = 0
 
-    def player_thread(self, connection, player: Player) -> None:
+    @staticmethod
+    def player_thread(connection, player: Player) -> None:
         while True:
             try:
                 try:

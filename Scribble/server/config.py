@@ -1,12 +1,10 @@
 from enum import Enum
 
 
-PLAYERS = 1
+PLAYERS = 8
 
-WIDTH, HEIGHT = 800, 600
-HORIZONTAL_MARGIN = 3
-VERTICAL_MARGIN = 8
-GRID_SIZE = (10, 20)
+WINDOW_SIZE = (1280, 1024)
+GRID_SIZE = (800, 600)
 
 
 class Color(Enum):

@@ -1,22 +1,20 @@
-from config import Color
+from config import (
+    Color,
+    GRID_SIZE,
+)
 
 
 class Board:
-    def __init__(self, x: float, y: float, grid_size: tuple[int, int], cell_size: tuple[int, int]):
-        self.x = x
-        self.y = y
-        self.grid_size = grid_size
-        self.cell_size = cell_size
+    def __init__(self):
         self.grid = self.create_empty_board()
-        self.width = self.grid_size[0] * self.cell_size[0]
-        self.height = self.grid_size[1] * self.cell_size[1]
 
     def update(self, x: int, y: int, color: tuple[int, int, int] | int):
         self.grid[y][x] = color
 
-    def create_empty_board(self) -> list[list[int]]:
+    @staticmethod
+    def create_empty_board() -> list[list[int]]:
         color = list(Color.WHITE.value.keys())[0]
-        return [[color for _ in range(self.grid_size[0])] for _ in range(self.grid_size[1])]
+        return [[color for _ in range(GRID_SIZE[0])] for _ in range(GRID_SIZE[1])]
 
     def clear(self):
         self.grid = self.create_empty_board()
