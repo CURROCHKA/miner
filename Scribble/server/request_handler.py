@@ -14,14 +14,13 @@ class Server:
         self.connection_queue = []
         self.game_id = 0
 
-    @staticmethod
-    def player_thread(connection, player: Player) -> None:
+    def player_thread(self, connection, player: Player) -> None:
         while True:
             try:
                 try:
                     data = connection.recv(1024)
                     data = json.loads(data.decode())
-                    print(f'[LOG] Received data: {data}')
+                    # print(f'[LOG] Received data: {data}')
                 except:
                     break
 
@@ -39,10 +38,10 @@ class Server:
                     if player.game:
                         if key == 0:  # guess
                             correct = player.game.player_guess(player, data['0'][0])
-                            send_msg[0] = correct
+                            send_msg[0] = [player.get_name(), correct]
 
                         elif key == 1:  # skip
-                            skip = player.game.skip()
+                            skip = player.game.skip(player)
                             send_msg[1] = skip
 
                         elif key == 2:  # get chat
@@ -70,12 +69,20 @@ class Server:
                             send_msg[7] = skips
 
                         elif key == 8:  # update board
-                            x, y, color = data[8][:3]
-                            player.game.update_board(x, y, color)
+                            if player.game.round.player_drawing == player:
+                                x, y, color = data['8'][:3]
+                                player.game.update_board(x, y, color)
 
                         elif key == 9:  # get round time
                             t = player.game.round.time
                             send_msg[9] = t
+
+                        elif key == 10:  # clear board
+                            if player.game.round.player_drawing == player:
+                                player.game.board.clear()
+
+                        elif key == 11:
+                            send_msg[11] = player.game.round.player_drawing == player
 
                 send_msg = json.dumps(send_msg)
                 connection.sendall(send_msg.encode())
@@ -84,21 +91,27 @@ class Server:
                 print(f'[EXCEPTION] {player.get_name()}: {e}')
                 break
 
+        if player.game:
+            player.game.player_disconnected(player)
+
+        if player in self.connection_queue:
+            self.connection_queue.remove(player)
+
         print(f'[DISCONNECT] {player.get_name()} disconnected')
-        # player.game.player_disconnected(player)
         connection.close()
 
     def handle_queue(self, player: Player) -> None:
         self.connection_queue.append(player)
 
         if len(self.connection_queue) >= PLAYERS:
-            game = Game(self.game_id, self.connection_queue)
+            game = Game(self.game_id, self.connection_queue[:])
 
-            for player in self.connection_queue:
+            for player in game.players:
                 player.set_game(game)
 
             self.game_id += 1
             self.connection_queue = []
+            print(f'[GAME] Game {self.game_id - 1} started')
 
     def authentication(self, connection, address) -> None:
         try:
@@ -129,7 +142,7 @@ class Server:
         except socket.error as e:
             str(e)
 
-        s.listen()
+        s.listen(1)
         print('Waiting for a connection, Server started')
 
         while True:

@@ -20,7 +20,7 @@ class Board:
         self.height = height
 
         # Делаю квадратные пиксели
-        self.pixel_size = self.__set_pixel_size()
+        self.pixel_size = self.__get_pixel_size()
         # Перерасчет ширины и высоты, относительно pixel_size
         self.width = self.pixel_size * COLS
         self.height = self.pixel_size * ROWS
@@ -29,7 +29,7 @@ class Board:
         self.grid = self.create_empty_board()
         self.compressed_grid = []
 
-    def __set_pixel_size(self) -> int:
+    def __get_pixel_size(self) -> int:
         pixel_size_x = self.width // COLS
         pixel_size_y = self.height // ROWS
         if self.width - 10 <= pixel_size_x * COLS <= self.width + 10:
@@ -82,8 +82,7 @@ class Board:
 
     @staticmethod
     def create_empty_board() -> list[list[int]]:
-        color = COLORS[0]
-        return [[color for _ in range(COLS)] for _ in range(ROWS)]
+        return [[COLORS[0] for _ in range(COLS)] for _ in range(ROWS)]
 
     def translate_board(self):
         for y, _ in enumerate(self.compressed_grid):

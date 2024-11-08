@@ -1,5 +1,5 @@
-import sys
 from math import hypot
+from typing import Any, Literal
 
 import pygame
 import pygame_widgets
@@ -7,27 +7,24 @@ from pygame_widgets.button import Button
 
 from board import Board
 from top_bar import TopBar
-from main_menu import MainMenu
 from chat import Chat
 from bottom_bar import BottomBar
 from leaderboard import LeaderBoard
 from player import Player
 
 from config import (
+    Window,
     FRAME,
     COLORS,
     WINDOW_SIZE,
     MARGIN,
-    PLAYERS,
     BORDER_THICKNESS,
     SKIP_FONT_SIZE,
     BOARD_WIDTH,
-    LEADERBOARD_WIDTH,
-    TOP_BAR_WIDTH,
     BOTTOM_BAR_WIDTH,
+    MAX_PLAYERS,
 )
 
-from typing import Any, Literal
 
 # for test
 WINDOW_SIZE = (1360, 768)
@@ -37,33 +34,36 @@ WINDOW_SIZE = (1360, 768)
 # WINDOW_SIZE = (1280, 1024)
 
 
-class Game:
-    def __init__(self):
-        self.width, self.height = WINDOW_SIZE
-        # self.win = pygame.display.set_mode((self.width, self.height), pygame.FULLSCREEN)  # original
-        self.win = pygame.display.set_mode((self.width, self.height))  # for test
-        self.width, self.height = self.win.get_size()
-        pygame.display.set_caption('Scribble')
-        self.BG_color = COLORS[0]
+class Game(Window):
+    def __init__(self, connection=None):
+        pygame.init()
+        super().__init__(WINDOW_SIZE[0], WINDOW_SIZE[1], caption='Scribble', frame=FRAME)
+        self.connection = connection
+
         self.draw_color = COLORS[7]
         self.margin = self.width * MARGIN / 100
 
         self.top_bar = TopBar(self.win, **self.__set_top_bar())
+        self.top_bar.change_round(1)
         self.leaderboard = LeaderBoard(self.win, **self.__set_leaderboard())
         self.board = Board(self.win, **self.__set_board())
-        self.chat = Chat(self.win, **self.__set_chat())
-        # self.top_bar.change_round(1)
+        self.chat = Chat(self.win, **self.__set_chat(), game=self)
 
-        self.players = [Player('Ivan'), Player('Polina'), Player('Иван Назаров'), Player('QQQQQQQQQQQQQQ'),
-                        Player('Ivan'), Player('Polina'), Player('Иван Назаров'), Player('I')]
+        # for test
+        self.players = [Player('Ivan'), Player('QQQQQQ'), Player('Иван Назаров')]
+        for player in self.players:
+            self.leaderboard.add_player(player)
 
         self.skip_button = Button(self.win, **self.__set_skip_button())
         self.bottom_bar = BottomBar(self.win, **self.__set_bottom_bar(), game=self)
 
-        for player in self.players:
-            self.leaderboard.add_player(player)
-
         self.last_pos = None
+        self.drawing = False
+
+    def add_player(self, player):
+        self.players.append(player)
+        self.leaderboard.add_player(player)
+        self.update_skip_button_pos(direction=1)
 
     def set_draw_color(self, draw_color: tuple[int, int, int]):
         self.draw_color = draw_color
@@ -120,7 +120,7 @@ class Game:
         x = self.leaderboard.width + self.margin * 2
         y = self.top_bar.height + self.margin * 2
         width = int(self.width / BOARD_WIDTH)
-        height = int(self.leaderboard.height * PLAYERS)
+        height = int(self.leaderboard.height * MAX_PLAYERS)
         args = {
             'x': x,
             'y': y,
@@ -134,8 +134,8 @@ class Game:
         args = {
             'x': self.margin,
             'y': self.top_bar.height + self.margin * 2,
-            'width': self.top_bar.width / LEADERBOARD_WIDTH + self.margin,
-            'height': self.margin * (PLAYERS - 2),
+            'width': self.top_bar.width / 6 + self.margin,
+            'height': self.top_bar.height,
             'margin': self.margin
         }
         return args
@@ -145,7 +145,7 @@ class Game:
             'x': self.margin,
             'y': self.margin,
             'width': self.width - self.margin * 2,
-            'height': self.height / TOP_BAR_WIDTH,
+            'height': self.height / 12,
             'margin': self.margin
         }
         return args
@@ -162,7 +162,12 @@ class Game:
         self.skip_button.moveY(self.leaderboard.height * direction)
 
     def skip(self):
-        print('Clicked skip button')
+        self.connection.send({1: []})
+
+    def decode_color(self):
+        for key in COLORS:
+            if COLORS[key] == self.draw_color:
+                return key
 
     def check_cliks(self):
         mouse_pos = pygame.mouse.get_pos()
@@ -172,40 +177,89 @@ class Game:
                 clicked_board = self.board.click(*point)
                 if clicked_board:
                     self.board.update(*clicked_board, self.draw_color)
+                    if self.connection:
+                        self.connection.send({8: [*clicked_board, self.decode_color()]})
 
         clicked_board = self.board.click(*mouse_pos)
         if clicked_board:
             self.board.update(*clicked_board, self.draw_color)
+            if self.connection:
+                self.connection.send({8: [*clicked_board, self.decode_color()]})
 
         self.last_pos = mouse_pos
 
     def draw(self, events):
+        self.clock.tick(self.frame)
         self.win.fill(self.BG_color)
         self.leaderboard.draw()
         self.top_bar.draw()
         self.board.draw()
         self.chat.draw()
 
+        if not self.drawing:
+            self.bottom_bar.color_buttons.hide()
+            self.bottom_bar.color_buttons.disable()
+
+            self.bottom_bar.spec_buttons.hide()
+            self.bottom_bar.spec_buttons.disable()
+        else:
+            self.bottom_bar.color_buttons.show()
+            self.bottom_bar.color_buttons.enable()
+
+            self.bottom_bar.spec_buttons.show()
+            self.bottom_bar.spec_buttons.enable()
+
         pygame_widgets.update(events)
-        pygame.display.update()
+        pygame.display.flip()
+
+    def check_events(self, events: list[pygame.event.Event]):
+        for event in events:
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                quit()
+            if pygame.mouse.get_pressed()[0]:
+                self.check_cliks()
+            else:
+                self.last_pos = None
 
     def run(self):
-        clock = pygame.time.Clock()
         pygame.event.set_allowed([pygame.MOUSEMOTION, pygame.QUIT])
         while True:
             events = pygame.event.get()
-            clock.tick(FRAME)
+
+            try:
+                # get board
+                response = self.connection.send({3: []})
+                self.board.compressed_grid = response
+                self.board.translate_board()
+
+                # get time
+                response = self.connection.send({9: []})
+                self.top_bar.time = response
+
+                # get chat
+                response = self.connection.send({2: []})
+                self.chat.update_chat(response)
+
+                # get round word
+                if not self.top_bar.word:
+                    word = self.connection.send({6: []})
+                    rnd = self.connection.send({5: []})
+                    drawing = self.connection.send({11: []})
+                    self.top_bar.change_word(word)
+                    self.top_bar.change_round(rnd)
+                    self.top_bar.max_round = len(self.players)
+                    self.drawing = drawing
+
+                # # get players update
+                # response = self.connection.send({-1: []})
+                # self.players = []
+                # for player_name in response[0].keys():
+                #     player = Player(player_name)
+                #     self.add_player(player)
+
+            except Exception as e:
+                print(e)
+
             self.draw(events)
-            for event in events:
-                if event.type == pygame.QUIT:
-                    sys.exit()
-                if pygame.mouse.get_pressed()[0]:
-                    self.check_cliks()
-                else:
-                    self.last_pos = None
-
-
-if __name__ == '__main__':
-    pygame.font.init()
-    g = Game()
-    g.run()
+            self.check_events(events)

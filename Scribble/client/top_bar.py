@@ -2,7 +2,6 @@ import pygame
 
 from config import (
     COLORS,
-    MAX_ROUND,
     BORDER_THICKNESS,
     FONT_NAME,
 )
@@ -19,6 +18,7 @@ class TopBar:
         self.font_size = int(self.height / 2)
         self.word = ''
         self.round = 1
+        self.max_round = 1
         self.color = COLORS[7]
         self.round_font = pygame.font.SysFont(FONT_NAME, self.font_size)
         self.border_thickness = int(self.margin / BORDER_THICKNESS)
@@ -26,7 +26,7 @@ class TopBar:
 
     def draw(self):
         # draw round
-        text = self.round_font.render(f'Round {self.round} of {MAX_ROUND}', 1, self.color)
+        text = self.round_font.render(f'Round {self.round} of {self.max_round}', 1, self.color)
         self.win.blit(text, (self.x + self.margin, self.y + self.height / 2 - text.get_height() / 2))
 
         # draw underscores
@@ -54,10 +54,11 @@ class TopBar:
 
         for char in text:
             if char != ' ':
-                new_text += '_'
+                new_text += ' _ '
             else:
-                new_text += ' '
+                new_text += '   '
         return new_text
+        # return text
 
     def change_word(self, word: str):
         self.word = word

@@ -30,9 +30,9 @@ class BottomBar:
         )
 
         try:
-            self.erase_img = pygame.image.load('Scribble/client/images/eraser.png').convert_alpha()
+            self.erase_img = pygame.image.load('images/eraser.png').convert_alpha()
             self.erase_img.set_colorkey(COLORS[0])
-            self.erase_img = pygame.transform.scale(self.erase_img, (int(self.width / 2), int(self.height / 2)))
+            self.erase_img = pygame.transform.scale(self.erase_img, (self.height, self.height))
             self.erase_text = ''
             self.erase_color = COLORS[0]
         except Exception as e:
@@ -42,9 +42,9 @@ class BottomBar:
             self.erase_color = COLORS[8]
 
         try:
-            self.clear_img = pygame.image.load('Scribble/client/images/trash.png').convert_alpha()
+            self.clear_img = pygame.image.load('images/trash.png').convert_alpha()
             self.clear_img.set_colorkey(COLORS[0])
-            self.clear_img = pygame.transform.scale(self.clear_img, (int(self.width / 2), int(self.height / 2)))
+            self.clear_img = pygame.transform.scale(self.clear_img, (int(self.height), int(self.height)))
             self.clear_text = ''
             self.clear_color = COLORS[0]
         except Exception as e:
@@ -80,7 +80,7 @@ class BottomBar:
         if self.erase_already_pressed:
             self.game.set_draw_color(self.old_draw_color)
             self.erase_already_pressed = False
-            self.spec_buttons.buttons[0].inactiveColour = COLORS[0]
+            self.spec_buttons.buttons[0].inactiveColour = self.erase_color
         else:
             self.old_draw_color = self.game.draw_color
             self.game.set_draw_color(COLORS[0])
@@ -89,3 +89,4 @@ class BottomBar:
 
     def clear_click(self):
         self.game.board.clear()
+        self.game.connection.send({10: []})

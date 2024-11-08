@@ -3,8 +3,8 @@ class Chat:
         self.content = []
         self.round = rnd
 
-    def update_chat(self, msg: str) -> None:
-        self.content.append(msg)
+    def update_chat(self, player_name, msg: str, is_sys_msg: bool) -> None:
+        self.content.append((player_name, msg, is_sys_msg))
 
     def get_chat(self):
         return self.content

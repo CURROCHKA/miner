@@ -46,7 +46,7 @@ class LeaderBoard:
                                  self.y + i * self.height + self.height / 2 - name.get_height() / 2))
 
             score = self.score_font.render(f'Score: {player[1]}', 1, self.text_color)
-            self.win.blit(score, (self.width / 3 + self.margin,
+            self.win.blit(score, (self.x + self.margin,
                                   self.y + i * self.height + (self.height - score.get_height()) - self.margin * 0.1))
 
         pygame.draw.rect(self.win, COLORS[7], (self.x - self.border_thickness / 2,

@@ -11,16 +11,23 @@ class Round:
         self.player_drawing = player_drawing
         self.game = game
         self.player_scores = {player: 0 for player in self.game.players}
-        self.player_guessed = []
+        self.players_guessed = []
+        self.players_skipped = []
         self.skips = 0
         self.time = 75
         self.chat = Chat(self)
         self.start = t.time()
         start_new_thread(self.time_thread, ())
 
-    def skip(self) -> bool:
-        self.skips += 1
-        return self.skips > len(self.game.players) - 2
+    def skip(self, player) -> bool:
+        if player not in self.players_skipped:
+            self.players_skipped.append(player)
+            self.skips += 1
+            self.chat.update_chat('',
+                                  f'Player has votes to skip ({self.skips}/{len(self.game.players) - 2}',
+                                  True)
+            return self.skips >= len(self.game.players) - 2
+        return False
 
     def get_scores(self):
         return self.player_scores
@@ -37,24 +44,24 @@ class Round:
             self.time -= 1
         self.end_round('Time is up')
 
-    def guess(self, player: Player, word: str) -> bool:
-        correct = self.word == word
+    def guess(self, player: Player, msg: str) -> bool:
+        correct = self.word.lower() == msg.lower()
         if correct:
-            self.player_guessed.append(player)
-            self.chat.update_chat(f'{player.get_name()} has guessed the word')
+            self.players_guessed.append(player)
+            self.chat.update_chat('', f'{player.get_name()} has guessed the word', True)
             return True
-        self.chat.update_chat(f'{player.get_name()} guessed {word}')
+        self.chat.update_chat(player.get_name(), msg, False)
         return False
 
     def player_left(self, player: Player) -> None:
         if player in self.player_scores:
             del self.player_scores[player]
 
-        if player in self.player_guessed:
-            self.player_guessed.remove(player)
+        if player in self.players_guessed:
+            self.players_guessed.remove(player)
 
         if player == self.player_drawing:
-            self.chat.update_chat(f'Round has been skipped because the drawer left')
+            self.chat.update_chat('', f'Round has been skipped because the drawer left', True)
             self.end_round('Drawing player leaves')
 
     def end_round(self, msg: str):

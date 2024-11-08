@@ -18,10 +18,14 @@ class Game:
 
     def start_new_round(self) -> None:
         try:
+            chat_content = []
+            if self.round:
+                chat_content = self.round.chat.get_chat()[-1: -3: -1]
             round_word = self.get_word()
             self.words_used.add(round_word)
             self.round = Round(self.get_word(), self.players[self.player_draw_ind], self)
             self.round_count += 1
+            self.round.chat.content = chat_content
 
             if self.player_draw_ind >= len(self.players):
                 self.round_ended()
@@ -36,12 +40,9 @@ class Game:
 
     def player_disconnected(self, player: Player):
         if player in self.players:
-            player_ind = self.players.index(player)
-            if player_ind >= self.player_draw_ind:
-                self.player_draw_ind -= 1
             self.players.remove(player)
             self.round.player_left(player)
-            self.round.chat.update_chat(f'Player {player.get_name()} disconnected')
+            self.round.chat.update_chat('', f'Player {player.get_name()} disconnected', True)
         else:
             raise Exception('Player not in game')
 
@@ -52,12 +53,11 @@ class Game:
         scores = {player.name: player.get_score() for player in self.players}
         return scores
 
-    def skip(self):
+    def skip(self, player):
         if self.round:
-            new_round = self.round.skip()
-            self.round.chat.update_chat(f'Player has votes to skip ({self.round.skips}/{len(self.players) - 2}')
+            new_round = self.round.skip(player)
             if new_round:
-                self.round.chat.update_chat('Round has been skipped')
+                self.round.chat.update_chat('', 'Round has been skipped', True)
                 self.round_ended()
                 return True
             return False
@@ -65,7 +65,7 @@ class Game:
             raise Exception('No round started yet!')
 
     def round_ended(self):
-        self.round.chat.update_chat(f'Round {self.round_count} has ended')
+        self.round.chat.update_chat('', f'Round {self.round_count} has ended', True)
         self.start_new_round()
         self.board.clear()
 
