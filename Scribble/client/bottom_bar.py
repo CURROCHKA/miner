@@ -89,4 +89,4 @@ class BottomBar:
 
     def clear_click(self):
         self.game.board.clear()
-        self.game.connection.send({10: []})
+        self.game.connection.send({9: []})

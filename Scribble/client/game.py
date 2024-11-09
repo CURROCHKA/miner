@@ -49,8 +49,7 @@ class Game(Window):
         self.board = Board(self.win, **self.__set_board())
         self.chat = Chat(self.win, **self.__set_chat(), game=self)
 
-        # for test
-        self.players = [Player('Ivan'), Player('QQQQQQ'), Player('Иван Назаров')]
+        self.players = []
         for player in self.players:
             self.leaderboard.add_player(player)
 
@@ -178,7 +177,7 @@ class Game(Window):
                 if clicked_board:
                     self.board.update(*clicked_board, self.draw_color)
                     if self.connection:
-                        self.connection.send({8: [*clicked_board, self.decode_color()]})
+                        self.connection.send({7: [*clicked_board, self.decode_color()]})
 
         clicked_board = self.board.click(*mouse_pos)
         if clicked_board:
@@ -188,6 +187,36 @@ class Game(Window):
 
         self.last_pos = mouse_pos
 
+    def set_board(self):
+        board = self.connection.send({3: []})
+        if board:
+            self.board.compressed_grid = board
+            self.board.translate_board()
+
+    def set_time(self):
+        response = self.connection.send({8: []})
+        self.top_bar.time = response
+
+    def set_chat_content(self):
+        response = self.connection.send({2: []})
+        self.chat.update_chat(response)
+
+    def set_word(self):
+        word = self.connection.send({6: []})
+        self.top_bar.change_word(word)
+
+    def set_round(self):
+        rnd = self.connection.send({5: []})
+        self.top_bar.change_round(rnd)
+
+    def set_drawing(self):
+        drawing = self.connection.send({10: []})
+        self.drawing = drawing
+
+    def set_top_bar_info(self):
+        self.top_bar.max_round = len(self.players)
+        self.top_bar.drawing = self.drawing
+
     def draw(self, events):
         self.clock.tick(self.frame)
         self.win.fill(self.BG_color)
@@ -196,18 +225,30 @@ class Game(Window):
         self.board.draw()
         self.chat.draw()
 
+        self.bottom_bar.color_buttons.show()
+        self.bottom_bar.color_buttons.enable()
+
+        self.bottom_bar.spec_buttons.show()
+        self.bottom_bar.spec_buttons.enable()
+
+        self.chat.text_box.hide()
+        self.chat.text_box.disable()
+
+        self.skip_button.show()
+        self.skip_button.enable()
+
         if not self.drawing:
             self.bottom_bar.color_buttons.hide()
             self.bottom_bar.color_buttons.disable()
 
             self.bottom_bar.spec_buttons.hide()
             self.bottom_bar.spec_buttons.disable()
-        else:
-            self.bottom_bar.color_buttons.show()
-            self.bottom_bar.color_buttons.enable()
 
-            self.bottom_bar.spec_buttons.show()
-            self.bottom_bar.spec_buttons.enable()
+            self.chat.text_box.show()
+            self.chat.text_box.enable()
+
+            self.skip_button.hide()
+            self.skip_button.disable()
 
         pygame_widgets.update(events)
         pygame.display.flip()
@@ -215,6 +256,7 @@ class Game(Window):
     def check_events(self, events: list[pygame.event.Event]):
         for event in events:
             if event.type == pygame.QUIT:
+                # self.leaderboard.remove_player()
                 pygame.quit()
                 quit()
             if pygame.mouse.get_pressed()[0]:
@@ -226,37 +268,32 @@ class Game(Window):
         pygame.event.set_allowed([pygame.MOUSEMOTION, pygame.QUIT])
         while True:
             events = pygame.event.get()
-
             try:
                 # get board
-                response = self.connection.send({3: []})
-                self.board.compressed_grid = response
-                self.board.translate_board()
+                self.set_board()
 
                 # get time
-                response = self.connection.send({9: []})
-                self.top_bar.time = response
+                self.set_time()
 
                 # get chat
-                response = self.connection.send({2: []})
-                self.chat.update_chat(response)
+                self.set_chat_content()
 
-                # get round word
-                if not self.top_bar.word:
-                    word = self.connection.send({6: []})
-                    rnd = self.connection.send({5: []})
-                    drawing = self.connection.send({11: []})
-                    self.top_bar.change_word(word)
-                    self.top_bar.change_round(rnd)
-                    self.top_bar.max_round = len(self.players)
-                    self.drawing = drawing
+                # get round information
+                self.set_word()
+                self.set_round()
+                self.set_drawing()
+                self.set_top_bar_info()
 
-                # # get players update
+                # get players update
                 # response = self.connection.send({-1: []})
                 # self.players = []
-                # for player_name in response[0].keys():
+                # self.leaderboard.players = []
+                # self.skip_button = Button(self.win, **self.__set_skip_button())
+                # for player_name in response:
                 #     player = Player(player_name)
-                #     self.add_player(player)
+                #     self.players.append(player)
+                #     self.leaderboard.add_player(player)
+                #     self.update_skip_button_pos(direction=1)
 
             except Exception as e:
                 print(e)

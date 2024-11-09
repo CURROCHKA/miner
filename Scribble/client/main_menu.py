@@ -95,7 +95,7 @@ class MainMenu(Window):
                 response = self.network.send({-1: []})
                 if response:
                     game = Game(self.network)
-                    for player_name in response[0].keys():
+                    for player_name in response:
                         player = Player(player_name)
                         game.add_player(player)
                     game.run()

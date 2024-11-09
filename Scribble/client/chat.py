@@ -70,6 +70,7 @@ class Chat:
 
             self.chat_font.set_bold(bold)
             txt = self.chat_font.render(text, 1, color)
+            self.chat_font.set_bold(False)
             self.win.blit(txt, (self.x + self.content_gap, self.y + self.content_gap / 2 + i * self.content_gap))
 
         pygame.draw.rect(self.win, COLORS[7], (self.x - self.border_thickness / 2,

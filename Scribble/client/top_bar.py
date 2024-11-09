@@ -22,7 +22,8 @@ class TopBar:
         self.color = COLORS[7]
         self.round_font = pygame.font.SysFont(FONT_NAME, self.font_size)
         self.border_thickness = int(self.margin / BORDER_THICKNESS)
-        self.time = 75
+        self.time = 80
+        self.drawing = False
 
     def draw(self):
         # draw round
@@ -30,7 +31,11 @@ class TopBar:
         self.win.blit(text, (self.x + self.margin, self.y + self.height / 2 - text.get_height() / 2))
 
         # draw underscores
-        text = self.round_font.render(self.underscore_text(self.word), 1, self.color)
+        if self.drawing:
+            word = self.word
+        else:
+            word = self.underscore_text(self.word)
+        text = self.round_font.render(word, 1, self.color)
         self.win.blit(text, (self.x + self.width / 2 - text.get_width() / 2,
                              self.y + self.height / 2 - text.get_height() / 2 + self.margin))
 
