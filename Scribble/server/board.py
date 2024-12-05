@@ -1,3 +1,5 @@
+from collections import deque
+
 from config import (
     COLS,
     ROWS,
@@ -7,10 +9,34 @@ from config import (
 class Board:
     def __init__(self):
         self.grid = self.create_empty_board()
+        self.filling = False
 
     @staticmethod
-    def check_coord(row: int, col: int):
+    def is_valid_coord(row: int, col: int):
         return 0 <= row < ROWS and 0 <= col < COLS
+
+    def flood_fill(self, start_x: int, start_y: int, new_color: tuple[int, int, int] | int):
+        original_color = self.grid[start_y][start_x]
+
+        if original_color == new_color:
+            return
+
+        queue = deque([(start_x, start_y)])
+        visited = {(start_x, start_y)}
+
+        while queue:
+            x, y = queue.popleft()
+            self.grid[y][x] = new_color
+
+            for dx, dy in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
+                nx, ny = x + dx, y + dy
+                if (
+                        self.is_valid_coord(ny, nx) and
+                        self.grid[ny][nx] == original_color and
+                        (nx, ny) not in visited
+                ):
+                    queue.append((nx, ny))
+                    visited.add((nx, ny))
 
     def update(self, x: int, y: int, color: tuple[int, int, int] | int, thickness: int = 0):
         neighbours = {(x, y)}
@@ -21,8 +47,11 @@ class Board:
                     neighbours.add(neighbour)
 
         for x, y in list(neighbours):
-            if self.check_coord(y, x):
-                self.grid[y][x] = color
+            if self.is_valid_coord(y, x):
+                if self.filling:
+                    self.flood_fill(x, y, color)
+                else:
+                    self.grid[y][x] = color
 
     @staticmethod
     def get_neighbour(x: int, y: int) -> list[tuple[int, int]]:

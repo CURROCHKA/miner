@@ -18,7 +18,6 @@ class Color(Enum):
 FRAME = 120
 WINDOW_SIZE = (0, 0)
 COLS, ROWS = (160, 90)
-# COLS, ROWS = (90, 90)
 FONT_NAME = 'consolas'
 
 # as a percentage
@@ -31,7 +30,7 @@ BOARD_WIDTH = 1.6
 BOTTOM_BAR_WIDTH = 2.5
 SKIP_FONT_SIZE = 1.5
 
-PLAYERS = 4
+PLAYERS = 1
 MAX_PLAYERS = 8
 COLORS = {list(color.value.keys())[0]: list(color.value.values())[0] for color in Color}
 

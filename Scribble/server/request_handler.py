@@ -1,6 +1,8 @@
 import socket
 import threading
 import json
+import zlib
+import traceback
 
 from player import Player
 from game import Game
@@ -18,24 +20,21 @@ class Server:
         self.game_id = 0
 
     def player_thread(self, connection, player: Player) -> None:
+        last_board = None
         while True:
             try:
-                try:
-                    data = connection.recv(1024)
-                    data = json.loads(data.decode())
-                except Exception as e:
-                    print(f'[EXCEPTION] {e}')
+                data = connection.recv(2048)
+                if not data:
                     break
 
-                keys = [int(key) for key in data.keys()]
+                data = json.loads(data.decode())
+                keys = list(map(int, data.keys()))
                 send_msg = {key: [] for key in keys}
-                last_board = None
 
                 for key in keys:
                     if key == -1:  # get a list of players
                         if player.game:
-                            send = [player.get_name() for player in player.game.players]
-                            send_msg[-1] = send
+                            send_msg[-1] = [player.get_name() for player in player.game.players]
                         else:
                             send_msg[-1] = []
 
@@ -45,39 +44,44 @@ class Server:
                             send_msg[0] = [player.get_name(), correct]
 
                         elif key == 1:  # skip
-                            skip = player.game.skip(player)
-                            send_msg[1] = skip
+                            send_msg[1] = player.game.skip(player)
 
                         elif key == 2:  # get chat
-                            content = player.game.round.chat.get_chat()
-                            send_msg[2] = content
+                            send_msg[2] = player.game.round.chat.get_chat()
 
                         elif key == 3:  # get board
                             board = player.game.board.get_board()
-                            if last_board != board:
-                                last_board = board
-                                send_msg[3] = board
+                            changes = []
+
+                            if last_board is not None:
+                                for y, row in enumerate(board):
+                                    for x, color in enumerate(row):
+                                        if last_board[y][x] != color:
+                                            changes.append((x, y, color))
+
+                            last_board = board.copy()
+                            send_msg[3] = changes
+                            # brd = player.game.board.get_board()
+                            # if last_board != brd:
+                            #     last_board = brd
+                            #     send_msg[3] = brd
 
                         elif key == 4:  # get score
-                            scores = player.game.get_player_scores()
-                            send_msg[4] = scores
+                            send_msg[4] = player.game.get_player_scores()
 
                         elif key == 5:  # get round
-                            rnd = player.game.round_count
-                            send_msg[5] = rnd
+                            send_msg[5] = player.game.round_count
 
                         elif key == 6:  # get word
-                            word = player.game.round.get_word()
-                            send_msg[6] = word
+                            send_msg[6] = player.game.round.get_word()
 
                         elif key == 7:  # update board
                             if player.game.round.player_drawing == player:
-                                x, y, color = data['7'][:3]
+                                x, y, color = data['7']
                                 player.game.update_board(x, y, color)
 
                         elif key == 8:  # get round time
-                            t = player.game.round.time
-                            send_msg[8] = t
+                            send_msg[8] = player.game.round.time
 
                         elif key == 9:  # clear board
                             if player.game.round.player_drawing == player:
@@ -86,13 +90,23 @@ class Server:
                         elif key == 10:  # get is_drawing_player
                             send_msg[10] = player.game.round.player_drawing == player
 
+                        elif key == 11:  # set filling in board
+                            filling = data['11']
+                            player.game.board.filling = filling
+
                 send_msg = json.dumps(send_msg)
-                connection.sendall(send_msg.encode())
+                compressed_data = zlib.compress(send_msg.encode())
+                connection.sendall(len(compressed_data).to_bytes(4, 'big'))
+                connection.sendall(compressed_data)
 
             except Exception as e:
                 print(f'[EXCEPTION] {player.get_name()}: {e}')
+                traceback.print_exc()
                 break
 
+        self.disconnect(connection, player)
+
+    def disconnect(self, connection, player):
         if player.game:
             player.game.player_disconnected(player)
 
@@ -118,9 +132,9 @@ class Server:
     def authentication(self, connection, address) -> None:
         try:
             data = connection.recv(1024)
-            name = str(data.decode())
+            name = str(data.decode()).strip()
             if not name:
-                raise Exception('No name received')
+                raise ValueError('No name received')
 
             connection.sendall('1'.encode())
             player = Player(address, name)
@@ -128,22 +142,23 @@ class Server:
             thread = threading.Thread(target=self.player_thread, args=(connection, player))
             thread.start()
         except Exception as e:
-            print(f'[EXCEPTION] {e}')
+            print(f'[EXCEPTION] Error authenticating player {address}: {e}')
             connection.close()
 
     def connection_thread(self) -> None:
         try:
             self.socket.bind((self.server, self.port))
+            self.socket.listen(1)
+            print('Server started, waiting for connections...')
+
+            while True:
+                connection, address = self.socket.accept()
+                print(f'[CONNECT] New connection from {address}')
+                self.authentication(connection, address)
+
         except socket.error as e:
-            str(e)
-
-        self.socket.listen(1)
-        print('Waiting for a connection, Server started')
-
-        while True:
-            connection, address = self.socket.accept()
-            print('[CONNECT] New connection')
-            self.authentication(connection, address)
+            print(f'[ERROR] {e}')
+            self.socket.close()
 
 
 if __name__ == '__main__':

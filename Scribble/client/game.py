@@ -46,7 +46,7 @@ class Game(Window):
         self.top_bar = TopBar(self.win, **self.__set_top_bar())
         self.top_bar.change_round(1)
         self.leaderboard = LeaderBoard(self.win, **self.__set_leaderboard())
-        self.board = Board(self.win, **self.__set_board())
+        self.board = Board(self.win, **self.__set_board(), game=self)
         self.chat = Chat(self.win, **self.__set_chat(), game=self)
 
         self.players = []
@@ -183,15 +183,17 @@ class Game(Window):
         if clicked_board:
             self.board.update(*clicked_board, self.draw_color)
             if self.connection:
-                self.connection.send({8: [*clicked_board, self.decode_color()]})
+                self.connection.send({7: [*clicked_board, self.decode_color()]})
 
         self.last_pos = mouse_pos
 
     def set_board(self):
         board = self.connection.send({3: []})
         if board:
-            self.board.compressed_grid = board
-            self.board.translate_board()
+            for x, y, color in board:
+                self.board.update(x, y, color)
+            # self.board.compressed_grid = board
+            # self.board.translate_board()
 
     def set_time(self):
         response = self.connection.send({8: []})
@@ -298,5 +300,5 @@ class Game(Window):
             except Exception as e:
                 print(e)
 
-            self.draw(events)
             self.check_events(events)
+            self.draw(events)

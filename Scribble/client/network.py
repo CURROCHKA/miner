@@ -1,5 +1,6 @@
 import socket
 import json
+import zlib
 
 
 class Network:
@@ -17,25 +18,19 @@ class Network:
             self.client.sendall(self.name.encode())
             return json.loads(self.client.recv(1024))
         except Exception as e:
-            self.disconnect(str(e))
+            self.disconnect(f'Connection error: {e}')
 
-    def send(self, data):
+    def send(self, data: dict):
         try:
             self.client.send(json.dumps(data).encode())
 
-            d = ''
-            while True:
-                last = self.client.recv(2048).decode()
-                d += last
-                try:
-                    if d.count('{') == d.count('}'):
-                        break
-                except Exception as e:
-                    print(e)
-                    break
-            return list(json.loads(d).values())[0]
-        except socket.error as e:
-            self.disconnect(e)
+            data_len = int.from_bytes(self.client.recv(4), 'big')
+            compressed_data = self.client.recv(data_len)
+            decompressed_data = zlib.decompress(compressed_data).decode()
+
+            return list(json.loads(decompressed_data).values())[0]
+        except (socket.error, json.JSONDecodeError, zlib.error) as e:
+            self.disconnect(f'Send error: {e}')
 
     def disconnect(self, msg: str):
         print(f'[EXCEPTION] Disconnected from server: {msg}')

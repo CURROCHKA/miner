@@ -1,4 +1,5 @@
 from random import choice
+import traceback
 
 from player import Player
 from board import Board
@@ -32,6 +33,7 @@ class Game:
             self.player_draw_ind += 1
         except Exception as e:
             print(f'[EXCEPTION] {e}')
+            traceback.print_exc()
             self.end_game()
 
     def player_guess(self, player: Player, word: str):
@@ -81,7 +83,7 @@ class Game:
 
     def get_new_word(self) -> str:
         try:
-            with open('words.txt', 'r') as f:
+            with open('Scribble/server/words.txt', 'r') as f:
                 words = []
 
                 for line in f:
