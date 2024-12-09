@@ -42,7 +42,7 @@ class Board:
         neighbours = {(x, y)}
         for _ in range(thickness // 2):
             for n in list(neighbours):
-                neighs = self.get_neighbour(*n)
+                neighs = self.get_neighbours(*n)
                 for neighbour in neighs:
                     neighbours.add(neighbour)
 
@@ -54,7 +54,7 @@ class Board:
                     self.grid[y][x] = color
 
     @staticmethod
-    def get_neighbour(x: int, y: int) -> list[tuple[int, int]]:
+    def get_neighbours(x: int, y: int) -> list[tuple[int, int]]:
         return [(x - 1, y - 1), (x, y - 1), (x + 1, y - 1), (x - 1, y),
                 (x + 1, y), (x - 1, y + 1), (x, y + 1), (x + 1, y + 1)]
 

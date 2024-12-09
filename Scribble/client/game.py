@@ -189,11 +189,8 @@ class Game(Window):
 
     def set_board(self):
         board = self.connection.send({3: []})
-        if board:
-            for x, y, color in board:
-                self.board.update(x, y, color)
-            # self.board.compressed_grid = board
-            # self.board.translate_board()
+        self.board.compressed_grid = board
+        self.board.translate_board()
 
     def set_time(self):
         response = self.connection.send({8: []})
