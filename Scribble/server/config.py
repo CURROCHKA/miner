@@ -30,7 +30,7 @@ BOARD_WIDTH = 1.6
 BOTTOM_BAR_WIDTH = 2.5
 SKIP_FONT_SIZE = 1.5
 
-PLAYERS = 2
+PLAYERS = 4
 MAX_PLAYERS = 8
 MAX_ROUND = 8
 COLORS = {list(color.value.keys())[0]: list(color.value.values())[0] for color in Color}

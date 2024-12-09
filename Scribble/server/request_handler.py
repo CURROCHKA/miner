@@ -7,7 +7,7 @@ import traceback
 from Scribble.server.player import Player
 from Scribble.server.game import Game
 from config import (
-    PLAYERS
+    PLAYERS,
 )
 
 
@@ -15,12 +15,13 @@ class Server:
     def __init__(self):
         self.server = 'localhost'
         self.port = 5555
-        self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.connection_queue = []
         self.game_id = 0
+        self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.socket.bind((self.server, self.port))
+        self.socket.listen(32)
 
-    def player_thread(self, connection, player: Player) -> None:
-        last_board = None
+    def player_thread(self, connection: socket.socket, player: Player) -> None:
         while True:
             try:
                 data = connection.recv(2048)
@@ -92,7 +93,7 @@ class Server:
 
         self.disconnect(connection, player)
 
-    def disconnect(self, connection, player):
+    def disconnect(self, connection: socket.socket, player: Player) -> None:
         if player.game:
             player.game.player_disconnected(player)
 
@@ -100,27 +101,31 @@ class Server:
             self.connection_queue.remove(player)
 
         print(f'[DISCONNECT] {player.get_name()} disconnected')
+        # connection.sendall(player.get_name().encode())
         connection.close()
 
     def handle_queue(self, player: Player) -> None:
         self.connection_queue.append(player)
 
         if len(self.connection_queue) >= PLAYERS:
-            game = Game(self.game_id, self.connection_queue[:])
+            game = Game(self.game_id, self.connection_queue[:PLAYERS])
 
             for player in game.players:
                 player.set_game(game)
 
             self.game_id += 1
-            self.connection_queue = []
+            self.connection_queue = self.connection_queue[PLAYERS:]
             print(f'[GAME] Game {self.game_id - 1} started')
 
-    def authentication(self, connection, address) -> None:
+    def authentication(self, connection: socket.socket, address: tuple[str, int]) -> None:
         try:
             data = connection.recv(1024)
             name = str(data.decode()).strip()
             if not name:
                 raise ValueError('No name received')
+            elif name in [player.get_name() for player in self.connection_queue]:
+                connection.sendall('-1'.encode())
+                raise ValueError('This nickname already exist')
 
             connection.sendall('1'.encode())
             player = Player(address, name)
@@ -133,8 +138,6 @@ class Server:
 
     def connection_thread(self) -> None:
         try:
-            self.socket.bind((self.server, self.port))
-            self.socket.listen(1)
             print('Server started, waiting for connections...')
 
             while True:

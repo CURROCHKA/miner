@@ -10,7 +10,7 @@ class Network:
         self.port = 5555
         self.address = (self.server, self.port)
         self.name = name
-        self.connect()
+        self.connection_response = self.connect()
 
     def connect(self):
         try:

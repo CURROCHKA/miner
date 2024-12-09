@@ -40,6 +40,7 @@ class MainMenu(Window):
         self.enter_font = pygame.font.SysFont(FONT_NAME, self.enter_font_size)
 
         self.waiting = False
+        self.is_existing_nickname = False
 
     def __set_text_box(self) -> dict[str, Any]:
         width = self.width / 3
@@ -61,10 +62,17 @@ class MainMenu(Window):
     def text_box_submit(self):
         name = self.text_box.getText()
         if len(name) >= 1:
-            self.waiting = True
-            self.text_box.hide()
-            self.text_box.disable()
             self.network = Network(name)
+
+            connection_response = self.network.connection_response
+
+            if connection_response == -1:
+                self.is_existing_nickname = True
+            if connection_response == 1:
+                self.is_existing_nickname = False
+                self.waiting = True
+                self.text_box.hide()
+                self.text_box.disable()
 
     def draw(self, events: list[pygame.event.Event]):
         self.clock.tick(self.frame)
@@ -74,9 +82,14 @@ class MainMenu(Window):
         self.win.blit(title, (self.width / 2 - title.get_width() / 2, 0))
 
         if self.waiting:
-            enter = self.enter_font.render('In queue', 1, COLORS[7])
+            enter_text = 'In queue'
         else:
-            enter = self.enter_font.render('Press enter to join a game...', 1, COLORS[7])
+            enter_text = 'Press enter to join a game...'
+
+        if self.is_existing_nickname:
+            enter_text = 'This nickname already exist'
+
+        enter = self.enter_font.render(enter_text, 1, COLORS[7])
         self.win.blit(enter, (self.width / 2 - enter.get_width() / 2, title.get_height()))
 
         pygame_widgets.update(events)
