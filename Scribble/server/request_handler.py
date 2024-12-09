@@ -4,8 +4,8 @@ import json
 import zlib
 import traceback
 
-from player import Player
-from game import Game
+from Scribble.server.player import Player
+from Scribble.server.game import Game
 from config import (
     PLAYERS
 )
@@ -51,20 +51,7 @@ class Server:
 
                         elif key == 3:  # get board
                             board = player.game.board.get_board()
-                            changes = []
-
-                            if last_board is not None:
-                                for y, row in enumerate(board):
-                                    for x, color in enumerate(row):
-                                        if last_board[y][x] != color:
-                                            changes.append((x, y, color))
-
-                            last_board = board.copy()
-                            send_msg[3] = changes
-                            # brd = player.game.board.get_board()
-                            # if last_board != brd:
-                            #     last_board = brd
-                            #     send_msg[3] = brd
+                            send_msg[3] = board
 
                         elif key == 4:  # get score
                             send_msg[4] = player.game.get_player_scores()
@@ -84,8 +71,7 @@ class Server:
                             send_msg[8] = player.game.round.time
 
                         elif key == 9:  # clear board
-                            if player.game.round.player_drawing == player:
-                                player.game.board.clear()
+                            player.game.board.clear()
 
                         elif key == 10:  # get is_drawing_player
                             send_msg[10] = player.game.round.player_drawing == player
