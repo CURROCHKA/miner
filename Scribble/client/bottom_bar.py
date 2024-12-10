@@ -29,45 +29,10 @@ class BottomBar:
             onClicks=[self.color_click] * 8
         )
 
-        try:
-            self.erase_img = pygame.image.load('images/eraser.png').convert_alpha()
-            self.erase_img.set_colorkey(COLORS[0])
-            self.erase_img = pygame.transform.scale(self.erase_img, (self.height, self.height))
-            self.erase_text = ''
-            self.erase_color = COLORS[0]
-        except Exception as e:
-            print(e)
-            self.erase_img = None
-            self.erase_text = 'Erase'
-            self.erase_color = COLORS[8]
-
-        try:
-            self.clear_img = pygame.image.load('images/trash.png').convert_alpha()
-            self.clear_img.set_colorkey(COLORS[0])
-            self.clear_img = pygame.transform.scale(self.clear_img, (self.height, self.height))
-            self.clear_text = ''
-            self.clear_color = COLORS[0]
-        except Exception as e:
-            print(e)
-            self.clear_img = None
-            self.clear_text = 'Clear'
-            self.clear_color = COLORS[8]
-
-        try:
-            self.filling_img = pygame.image.load('images/filling.png').convert_alpha()
-            self.filling_img.set_colorkey(COLORS[0])
-            self.filling_img = pygame.transform.scale(self.filling_img, (self.height, self.height))
-            self.filling_text = ''
-            self.filling_color = COLORS[0]
-        except Exception as e:
-            print(e)
-            self.filling_img = None
-            self.filling_text = 'Filling'
-            self.filling_color = COLORS[8]
-
-        self.filling_already_pressed = False
-        self.erase_already_pressed = False
-        self.old_draw_color = self.game.draw_color
+        self.brush_img, self.brush_text, self.brush_color = self.set_spec_button('images/brush.png', 'Brush')
+        self.erase_img, self.erase_text, self.erase_color = self.set_spec_button('images/eraser.png', 'Erase')
+        self.filling_img, self.filling_text, self.filling_color = self.set_spec_button('images/filling.png', 'Filling')
+        self.trash_img, self.trash_text, self.trash_color = self.set_spec_button('images/trash.png', 'Clear')
 
         self.spec_buttons = ButtonArray(
             self.win,
@@ -75,42 +40,101 @@ class BottomBar:
             self.y,
             int(self.width),
             self.height,
-            (3, 1),
+            (4, 1),
             border=0,
             colour=COLORS[0],
-            inactiveColours=(self.erase_color, self.clear_color, self.filling_color),
-            texts=(self.erase_text, self.clear_text, self.filling_text),
-            images=(self.erase_img, self.clear_img, self.filling_img),
-            onClicks=(self.erase_click, self.clear_click, self.filling_click),
+            inactiveColours=(self.brush_color, self.erase_color, self.filling_color, self.trash_color),
+            texts=(self.brush_text, self.erase_text, self.filling_text, self.trash_text),
+            images=(self.brush_img, self.erase_img, self.filling_img, self.trash_img),
+            onClicks=(self.brush_click, self.erase_click, self.filling_click, self.trash_click),
         )
+
+        self.brush_already_pressed = False
+        self.erase_already_pressed = False
+        self.filling_already_pressed = False
+        self.old_draw_color = self.game.draw_color
+
+        self.enable_brush()
+
+    def set_spec_button(self, path_to_img: str = '', text: str = '') -> tuple[pygame.Surface, str, tuple[int, int, int]]:
+        try:
+            img = pygame.image.load(path_to_img).convert_alpha()
+            img.set_colorkey(COLORS[0])
+            img = pygame.transform.scale(img, (self.height, self.height))
+
+            button_text = ''
+            button_color = COLORS[0]
+        except Exception as e:
+            print(e)
+            img = None
+            button_text = text
+            button_color = COLORS[8]
+        return img, button_text, button_color
+
+    def enable_brush(self):
+        self.disable_filling()
+        self.disable_erase()
+
+        self.brush_already_pressed = True
+        self.spec_buttons.buttons[0].inactiveColour = self.spec_buttons.buttons[0].pressedColour
+
+    def disable_brush(self):
+        self.brush_already_pressed = False
+        self.spec_buttons.buttons[0].inactiveColour = self.brush_color
+
+    def brush_click(self):
+        if not self.brush_already_pressed:
+            self.enable_brush()
+
+    def enable_erase(self):
+        self.disable_filling()
+        self.disable_brush()
+
+        self.old_draw_color = self.game.draw_color
+        self.game.set_draw_color(COLORS[0])
+        self.erase_already_pressed = True
+        self.spec_buttons.buttons[1].inactiveColour = self.spec_buttons.buttons[1].pressedColour
+
+    def disable_erase(self):
+        self.game.set_draw_color(self.old_draw_color)
+        self.erase_already_pressed = False
+        self.spec_buttons.buttons[1].inactiveColour = self.erase_color
+
+    def erase_click(self):
+        if self.erase_already_pressed:
+            self.disable_erase()
+            self.enable_brush()
+        else:
+            self.enable_erase()
+
+    def enable_filling(self):
+        self.disable_erase()
+        self.disable_brush()
+
+        self.game.board.filling = True
+        self.filling_already_pressed = True
+        self.spec_buttons.buttons[2].inactiveColour = self.spec_buttons.buttons[2].pressedColour
+        self.game.connection.send({11: self.game.board.filling})
+
+    def disable_filling(self):
+        self.game.board.filling = False
+        self.filling_already_pressed = False
+        self.spec_buttons.buttons[2].inactiveColour = self.filling_color
+        self.game.connection.send({11: self.game.board.filling})
 
     def filling_click(self):
         if self.filling_already_pressed:
-            self.game.board.filling = False
-            self.filling_already_pressed = False
-            self.spec_buttons.buttons[2].inactiveColour = self.filling_color
+            self.disable_filling()
+            self.enable_brush()
         else:
-            self.game.board.filling = True
-            self.filling_already_pressed = True
-            self.spec_buttons.buttons[2].inactiveColour = self.spec_buttons.buttons[2].pressedColour
-        self.game.connection.send({11: self.game.board.filling})
+            self.enable_filling()
+
+    def trash_click(self):
+        self.game.board.clear()
+        self.game.connection.send({9: []})
 
     def color_click(self):
         for color_button in self.color_buttons.buttons:
             if color_button.clicked:
                 self.game.set_draw_color(color_button.inactiveColour)
 
-    def erase_click(self):
-        if self.erase_already_pressed:
-            self.game.set_draw_color(self.old_draw_color)
-            self.erase_already_pressed = False
-            self.spec_buttons.buttons[0].inactiveColour = self.erase_color
-        else:
-            self.old_draw_color = self.game.draw_color
-            self.game.set_draw_color(COLORS[0])
-            self.erase_already_pressed = True
-            self.spec_buttons.buttons[0].inactiveColour = self.spec_buttons.buttons[0].pressedColour
-
-    def clear_click(self):
-        self.game.board.clear()
-        self.game.connection.send({9: []})

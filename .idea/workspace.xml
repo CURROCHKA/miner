@@ -4,14 +4,12 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="e9aa74d5-5a94-41b4-b2b6-1ab1cd7e9334" name="Changes" comment="The fill works fine, everything works fine">
-      <change beforePath="$PROJECT_DIR$/.idea/IvanTasks.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/IvanTasks.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+    <list default="true" id="e9aa74d5-5a94-41b4-b2b6-1ab1cd7e9334" name="Changes" comment="now it is not possible to connect with the same names to different users">
+      <change afterPath="$PROJECT_DIR$/Scribble/client/images/brush.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Scribble/client/main_menu.py" beforeDir="false" afterPath="$PROJECT_DIR$/Scribble/client/main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Scribble/client/network.py" beforeDir="false" afterPath="$PROJECT_DIR$/Scribble/client/network.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Scribble/client/bottom_bar.py" beforeDir="false" afterPath="$PROJECT_DIR$/Scribble/client/bottom_bar.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Scribble/server/config.py" beforeDir="false" afterPath="$PROJECT_DIR$/Scribble/server/config.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Scribble/server/request_handler.py" beforeDir="false" afterPath="$PROJECT_DIR$/Scribble/server/request_handler.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -38,6 +36,9 @@
   <component name="MarkdownSettingsMigration">
     <option name="stateVersion" value="1" />
   </component>
+  <component name="ProjectColorInfo"><![CDATA[{
+  "associatedIndex": 6
+}]]></component>
   <component name="ProjectId" id="2DTv2TD4i0DOsqwTk6Y4Rq9PfKC" />
   <component name="ProjectLevelVcsManager" settingsEditedManually="true">
     <ConfirmationsSetting value="2" id="Add" />
@@ -46,27 +47,36 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "ASKED_SHARE_PROJECT_CONFIGURATION_FILES": "true",
-    "Python.main.executor": "Run",
-    "Python.server.executor": "Run",
-    "RunOnceActivity.OpenProjectViewOnStart": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
-    "git-widget-placeholder": "dev__scribble",
-    "last_opened_file_path": "F:/Projects/IvanTasks/Scribble/server/request_handler.py",
-    "settings.editor.selected.configurable": "com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;ASKED_SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
+    &quot;Python.main.executor&quot;: &quot;Run&quot;,
+    &quot;Python.pygame_test.executor&quot;: &quot;Run&quot;,
+    &quot;Python.server.executor&quot;: &quot;Run&quot;,
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;dev__scribble&quot;,
+    &quot;last_opened_file_path&quot;: &quot;F:/Projects/IvanTasks/Scribble/client/images&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable&quot;
   },
-  "keyToStringList": {
-    "ChangesTree.GroupingKeys": [
-      "directory",
-      "repository"
+  &quot;keyToStringList&quot;: {
+    &quot;ChangesTree.GroupingKeys&quot;: [
+      &quot;directory&quot;,
+      &quot;repository&quot;
     ]
   }
-}]]></component>
-  <component name="RunManager" selected="Python.main">
-    <configuration name="main" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+}</component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="F:\Projects\IvanTasks\Scribble\client\images" />
+    </key>
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="F:\Projects\IvanTasks\Scribble\client\images" />
+    </key>
+  </component>
+  <component name="RunManager" selected="Python.pygame_test">
+    <configuration name="pygame_test" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <module name="IvanTasks" />
       <option name="ENV_FILES" value="" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -113,13 +123,20 @@
     </configuration>
     <list>
       <item itemvalue="Python.server" />
-      <item itemvalue="Python.main" />
+      <item itemvalue="Python.pygame_test" />
     </list>
     <recent_temporary>
       <list>
-        <item itemvalue="Python.main" />
+        <item itemvalue="Python.pygame_test" />
       </list>
     </recent_temporary>
+  </component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-python-sdk-0509580d9d50-746f403e7f0c-com.jetbrains.pycharm.community.sharedIndexes.bundled-PC-241.14494.241" />
+      </set>
+    </attachedChunks>
   </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
@@ -158,7 +175,15 @@
       <option name="project" value="LOCAL" />
       <updated>1666540918191</updated>
     </task>
-    <option name="localTasksCounter" value="5" />
+    <task id="LOCAL-00005" summary="now it is not possible to connect with the same names to different users">
+      <option name="closed" value="true" />
+      <created>1733746752444</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1733746752444</updated>
+    </task>
+    <option name="localTasksCounter" value="6" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -187,6 +212,7 @@
   <component name="VcsManagerConfiguration">
     <MESSAGE value="commit" />
     <MESSAGE value="The fill works fine, everything works fine" />
-    <option name="LAST_COMMIT_MESSAGE" value="The fill works fine, everything works fine" />
+    <MESSAGE value="now it is not possible to connect with the same names to different users" />
+    <option name="LAST_COMMIT_MESSAGE" value="now it is not possible to connect with the same names to different users" />
   </component>
 </project>
