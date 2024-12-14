@@ -20,7 +20,7 @@ class Round:
     def skip(self, player) -> bool:
         if self.player_drawing == player:
             self.chat.update_chat('',
-                                  f'Player {player.get_name()} skipped a turn',
+                                  f'Игрок {player.get_name()} пропустил свой ход',
                                   True)
             return True
         return False
@@ -43,11 +43,12 @@ class Round:
             self.time -= 1
         self.end_round()
 
-    def guess(self, player: Player, msg: str) -> bool:
+    def message_processing(self, player: Player, msg: str) -> bool:
         correct = self.word.lower() == msg.lower()
         if correct:
             self.players_guessed.append(player)
-            self.chat.update_chat('', f'{player.get_name()} has guessed the word', True)
+            self.chat.update_chat('', f'{player.get_name()} отгадал слово', True)
+            self.player_scores[player] += 1
             return True
         self.chat.update_chat(player.get_name(), msg, False)
         return False
@@ -60,7 +61,7 @@ class Round:
             self.players_guessed.remove(player)
 
         if player == self.player_drawing:
-            self.chat.update_chat('', f'Round has been skipped because the drawer left', True)
+            self.chat.update_chat('', f'Раунд {self.game.round_count} был пропущен, так как рисовальщик ушёл', True)
             self.end_round()
 
     def end_round(self):

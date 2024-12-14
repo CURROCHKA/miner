@@ -3,41 +3,38 @@ import pygame
 from config import (
     COLORS,
     BORDER_THICKNESS,
-    FONT_NAME,
+    render_text,
 )
 
 
 class TopBar:
-    def __init__(self, win: pygame.Surface, x: float, y: float, width: int, height: int, margin: float):
+    def __init__(self, win: pygame.Surface, x: float, y: float, width: int, height: int, margin: float, game):
         self.win = win
         self.x = x
         self.y = y
         self.width = width
         self.height = height
         self.margin = margin
-        self.font_size = int(self.height / 2)
-        self.word = ''
-        self.round = 1
-        self.max_round = 1
-        self.color = COLORS[7]
-        self.round_font = pygame.font.SysFont(FONT_NAME, self.font_size)
+        self.game = game
         self.border_thickness = int(self.margin / BORDER_THICKNESS)
-        self.time = 80
-        self.drawing = False
+
+        self.round = 1
+        self.max_round = self.round
+        self.word = ''
+        self.time = 75
+
+        self.font_size = int(self.height / 2)
+        self.round_render = render_text(f'Раунд {self.round} из {self.max_round}', font_size=self.font_size)
+        self.word_render = render_text(self.word, font_size=self.font_size)
+        self.timer_render = render_text(str(self.time), font_size=self.font_size)
 
     def draw(self):
         # draw round
-        text = self.round_font.render(f'Round {self.round} of {self.max_round}', 1, self.color)
-        self.win.blit(text, (self.x + self.margin, self.y + self.height / 2 - text.get_height() / 2))
+        self.win.blit(self.round_render,
+                      (self.x + self.margin, self.y + self.height / 2 - self.round_render.get_height() / 2))
 
-        # draw underscores
-        if self.drawing:
-            word = self.word
-        else:
-            word = self.underscore_text(self.word)
-        text = self.round_font.render(word, 1, self.color)
-        self.win.blit(text, (self.x + self.width / 2 - text.get_width() / 2,
-                             self.y + self.height / 2 - text.get_height() / 2 + self.margin))
+        self.win.blit(self.word_render, (self.x + self.width / 2 - self.word_render.get_width() / 2,
+                                         self.y + self.height / 2 - self.word_render.get_height() / 2 + self.margin))
 
         pygame.draw.rect(self.win, COLORS[7], (self.x - self.border_thickness / 2,
                                                self.y - self.border_thickness / 2,
@@ -49,9 +46,8 @@ class TopBar:
         pygame.draw.circle(self.win, COLORS[7], (int(self.x + self.width - radius),
                                                  int(self.y + self.height / 2)), radius, self.border_thickness)
 
-        timer = self.round_font.render(str(self.time), 1, COLORS[7])
-        self.win.blit(timer, (self.x + self.width - timer.get_width() / 2 - radius,
-                              self.y + self.height / 2 - timer.get_height() / 2))
+        self.win.blit(self.timer_render, (self.x + self.width - self.timer_render.get_width() / 2 - radius,
+                                          self.y + self.height / 2 - self.timer_render.get_height() / 2))
 
     @staticmethod
     def underscore_text(text: str):
@@ -63,10 +59,24 @@ class TopBar:
             else:
                 new_text += '   '
         return new_text
-        # return text
 
-    def change_word(self, word: str):
+    def update_time(self, time: int):
+        self.time = time
+        self.timer_render = render_text(str(time), font_size=self.font_size)
+
+    def update_word(self, word: str):
         self.word = word
+        if self.game.drawing:
+            wrd = word
+        else:
+            wrd = self.underscore_text(word)
 
-    def change_round(self, rnd: int):
+        self.word_render = render_text(wrd, font_size=self.font_size)
+
+    def update_round(self, rnd: int):
         self.round = rnd
+        self.round_render = render_text(f'Раунд {self.round} из {self.max_round}', font_size=self.font_size)
+
+    def update_max_round(self, max_round: int):
+        self.max_round = max_round
+        self.round_render = render_text(f'Раунд {self.round} из {self.max_round}', font_size=self.font_size)

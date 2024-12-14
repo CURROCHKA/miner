@@ -1,3 +1,4 @@
+import sys
 from typing import Any
 
 import pygame
@@ -13,6 +14,9 @@ from config import (
     COLORS,
     FRAME,
     FONT_NAME,
+    MAIN_MENU_FONT_SIZE,
+    render_text,
+    get_font_size,
 )
 
 # for test
@@ -30,14 +34,13 @@ class MainMenu(Window):
 
         self.text_box = TextBox(self.win,
                                 **self.__set_text_box(),
-                                placeholderText='Enter your nickname',
                                 onSubmit=self.text_box_submit)
 
-        self.title_font_size = int(self.width / 15)
-        self.title_font = pygame.font.SysFont(FONT_NAME, self.title_font_size)
+        self.title_render = render_text('Scribble', max_width=int(self.width / 3), max_height=self.height)
 
-        self.enter_font_size = int(self.width / 30)
-        self.enter_font = pygame.font.SysFont(FONT_NAME, self.enter_font_size)
+        self.enter_render = render_text('Нажмите ВВОД, чтобы присоединиться к игре...',
+                                        max_width=self.title_render.get_width() * 3,
+                                        max_height=self.title_render.get_height())
 
         self.waiting = False
         self.is_existing_nickname = False
@@ -47,7 +50,8 @@ class MainMenu(Window):
         height = self.height / 10
         x = self.width / 2 - width / 2
         y = self.height / 2 - height / 2
-        font_size = int(width / 15)
+        text = 'Введите свой никнейм'
+        font_size = int(self.width * MAIN_MENU_FONT_SIZE)
         font = pygame.font.SysFont(FONT_NAME, font_size)
         args = {
             'x': x,
@@ -56,6 +60,7 @@ class MainMenu(Window):
             'height': height,
             'fontSize': font_size,
             'font': font,
+            'placeholderText': text
         }
         return args
 
@@ -78,19 +83,22 @@ class MainMenu(Window):
         self.clock.tick(self.frame)
         self.win.fill(COLORS[0])
 
-        title = self.title_font.render('Scribble', 1, COLORS[7])
-        self.win.blit(title, (self.width / 2 - title.get_width() / 2, 0))
+        self.win.blit(self.title_render, (self.width / 2 - self.title_render.get_width() / 2, 0))
 
+        title_width = self.title_render.get_width()
+        title_height = y = self.title_render.get_height()
         if self.waiting:
-            enter_text = 'In queue'
+            self.enter_render = render_text('В очереди', title_width, title_height)
+            y = self.height / 2 - self.enter_render.get_height() / 2
+
+        elif self.is_existing_nickname:
+            self.enter_render = render_text('Этот никнейм уже занят', title_width * 2, title_height)
+
         else:
-            enter_text = 'Press enter to join a game...'
+            self.enter_render = render_text('Нажмите ВВОД, чтобы присоединиться к игре...',
+                                            self.width, title_height)
 
-        if self.is_existing_nickname:
-            enter_text = 'This nickname already exist'
-
-        enter = self.enter_font.render(enter_text, 1, COLORS[7])
-        self.win.blit(enter, (self.width / 2 - enter.get_width() / 2, title.get_height()))
+        self.win.blit(self.enter_render, (self.width / 2 - self.enter_render.get_width() / 2, y))
 
         pygame_widgets.update(events)
         pygame.display.flip()
@@ -99,7 +107,7 @@ class MainMenu(Window):
         for event in events:
             if event.type == pygame.QUIT:
                 pygame.quit()
-                quit()
+                sys.exit()
 
     def run(self):
         while True:

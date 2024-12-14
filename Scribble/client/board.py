@@ -66,8 +66,6 @@ class Board:
         while queue:
             x, y = queue.popleft()
             self.grid[y][x] = new_color
-            # if self.game.connection:
-            #     self.game.connection.send({7: [x, y, self.game.decode_color()]})
 
             for dx, dy in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
                 nx, ny = x + dx, y + dy

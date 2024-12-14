@@ -1,3 +1,4 @@
+import os
 from random import choice
 import traceback
 
@@ -22,13 +23,14 @@ class Game:
             chat_content = []
             if self.round:
                 chat_content = self.round.chat.get_chat()
-            self.round = Round(self.get_new_word(), self.players[self.player_draw_ind], self)
-            self.round_count += 1
-            self.round.chat.content = chat_content
 
             if self.player_draw_ind >= len(self.players):
                 self.round_ended()
                 self.end_game()
+
+            self.round = Round(self.get_new_word(), self.players[self.player_draw_ind], self)
+            self.round_count += 1
+            self.round.chat.content = chat_content
 
             self.player_draw_ind += 1
         except Exception as e:
@@ -37,13 +39,14 @@ class Game:
             self.end_game()
 
     def player_guess(self, player: Player, word: str):
-        return self.round.guess(player, word)
+        return self.round.message_processing(player, word)
 
     def player_disconnected(self, player: Player):
         if player in self.players:
+
             self.players.remove(player)
             self.round.player_left(player)
-            self.round.chat.update_chat('', f'Player {player.get_name()} disconnected', True)
+            self.round.chat.update_chat('', f'Игрок {player.get_name()} отключился', True)
         else:
             raise Exception('Player not in game')
 
@@ -58,7 +61,7 @@ class Game:
         if self.round:
             new_round = self.round.skip(player)
             if new_round:
-                self.round.chat.update_chat('', 'Round has been skipped', True)
+                self.round.chat.update_chat('', f'Раунд {self.round_count} был пропущен', True)
                 self.round_ended()
                 return True
             return False
@@ -66,9 +69,9 @@ class Game:
             raise Exception('No round started yet!')
 
     def round_ended(self):
-        self.round.chat.update_chat('', f'Round {self.round_count} has ended', True)
-        self.start_new_round()
+        self.round.chat.update_chat('', f'Раунд {self.round_count} был завершен', True)
         self.board.clear()
+        self.start_new_round()
 
     def update_board(self, x: int, y: int, color: tuple[int, int, int]):
         if self.board:
@@ -81,9 +84,16 @@ class Game:
         for player in self.players:
             player.game = None
 
+    @staticmethod
+    def get_words_filename() -> str:
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        filename = os.path.join(current_dir, 'words.txt')
+        return filename
+
     def get_new_word(self) -> str:
         try:
-            with open('Scribble/server/words.txt', 'r') as f:
+            filename = self.get_words_filename()
+            with open(filename, 'r') as f:
                 words = []
 
                 for line in f:
@@ -96,4 +106,5 @@ class Game:
                 return wrd
         except Exception as e:
             print(f'[EXCEPTION] {e}')
+            traceback.print_exc()
             self.end_game()

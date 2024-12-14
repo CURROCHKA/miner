@@ -4,20 +4,25 @@ from config import (
     COLORS,
     BORDER_THICKNESS,
     FONT_NAME,
+    get_font_size,
+    render_text,
 )
 
 
 class LeaderBoard:
-    def __init__(self, win: pygame.Surface, x: float, y: float, width: int, height: int, margin: float):
+    def __init__(self, win: pygame.Surface, x: float, y: float, width: int, height: int, margin: float, game):
         self.win = win
         self.x = x
         self.y = y
         self.width = width
         self.height = height  # Высота одной строчки
         self.margin = margin
+        self.game = game
         self.text_color = COLORS[7]
         self.border_thickness = int(self.margin / BORDER_THICKNESS)
-        self.players = []  # [(player: Player, name_font: pygame.font)]
+        self.players = []  # [(player: Player, {'rank_render': pygame.Surface,
+                                                # 'name_render': pygame.Surface,
+                                                # 'score_render': pygame.Surface}]
 
         self.score_font_size = int(self.width / 15)
         self.score_font = pygame.font.SysFont(FONT_NAME, self.score_font_size)
@@ -26,28 +31,27 @@ class LeaderBoard:
         self.rank_font = pygame.font.SysFont(FONT_NAME, self.rank_font_size)
 
     def draw(self):
-        scores = [(player[0].get_name(), player[0].get_score()) for player in self.players]
-        scores.sort(key=lambda x: x[1], reverse=True)
+        for i, player_info in enumerate(self.players):
+            rank_render = player_info[1]['rank_render']
+            name_render = player_info[1]['name_render']
+            score_render = player_info[1]['score_render']
 
-        for i, player in enumerate(scores):
-            name_font = self.players[i][1]
             if i % 2 == 0:
                 color = COLORS[0]
             else:
                 color = COLORS[8]
+
             pygame.draw.rect(self.win, color, (self.x, self.y + i * self.height, self.width, self.height))
 
-            rank = self.rank_font.render(f'№ {i + 1}', 1, self.text_color)
-            self.win.blit(rank, (self.x + self.margin,
-                                 self.y + i * self.height + self.height / 2 - rank.get_height() / 2))
+            self.win.blit(rank_render, (self.x + self.margin,
+                                        self.y + i * self.height + self.height / 2 - rank_render.get_height() / 2))
 
-            name = name_font.render(player[0], 1, self.text_color)
-            self.win.blit(name, (self.width / 3 + self.margin,
-                                 self.y + i * self.height + self.height / 2 - name.get_height() / 2))
+            self.win.blit(name_render, (self.width / 3 + self.margin,
+                                        self.y + i * self.height + self.height / 2 - name_render.get_height() / 2))
 
-            score = self.score_font.render(f'Score: {player[1]}', 1, self.text_color)
-            self.win.blit(score, (self.x + self.margin,
-                                  self.y + i * self.height + (self.height - score.get_height()) - self.margin * 0.1))
+            self.win.blit(score_render, (self.x + self.margin,
+                                         self.y + i * self.height + (
+                                                 self.height - score_render.get_height()) - self.margin * 0.1))
 
         pygame.draw.rect(self.win, COLORS[7], (self.x - self.border_thickness / 2,
                                                self.y - self.border_thickness / 2,
@@ -55,35 +59,60 @@ class LeaderBoard:
                                                self.height * len(self.players) + self.border_thickness),
                          self.border_thickness)
 
-    @staticmethod
-    def __get_name_font(name: str, max_width: int, max_height: int):
-        font_size = 1  # Начинаем с минимального размера
-        font = pygame.font.SysFont(FONT_NAME, font_size)
+    def get_scores(self):
+        scores = []
+        for player_info in self.players:
+            player = player_info[0]
+            score = player.get_score()
+            scores.append((player, score))
+        return sorted(scores, key=lambda x: x[1], reverse=True)
 
-        # Увеличиваем размер шрифта, пока текст не выйдет за границы
-        while True:
-            text_width, text_height = font.size(name)
+    def assign_ranks(self):
+        scores = self.get_scores()
+        ranks = []
+        current_rank = 0
+        previous_score = None
 
-            # Проверка, помещается ли текст по ширине или высоте
-            if text_width > max_width or text_height > max_height:
-                # print(text_width, text_height, font_size)
-                font_size = min(text_width, text_height)  # Шаг назад, чтобы точно поместился текст
-                break
+        for player, score in scores:
+            if score != previous_score:
+                current_rank += 1
+                previous_score = score
 
-            # Увеличиваем размер и создаем новый шрифт для проверки
-            font_size += 1
-            font = pygame.font.SysFont(FONT_NAME, font_size)
-        return pygame.font.SysFont(FONT_NAME, font_size)
+            ranks.append((player, current_rank))
+
+        return ranks
+
+    def get_rank(self, player):
+        ranks = self.assign_ranks()
+        for current_player, rank in ranks:
+            if current_player == player:
+                return rank
 
     def add_player(self, player):
-        n = len(self.players) + 1
+        self.players.append((player, {}))
+
         name = player.get_name()
-        rank = self.rank_font.render(f'№ {n}', 1, self.text_color)
-        name_font = self.__get_name_font(name, self.width - rank.get_width() * 3, self.height)
-        self.players.append((player, name_font))
+        score = player.get_score()
+        rank = self.get_rank(player)
+
+        rank_render = render_text(f'# {rank}', font_size=self.rank_font_size)
+        score_render = render_text(f'Счёт: {score}', font_size=self.score_font_size)
+
+        color = COLORS[7]
+        if name == self.game.name:
+            name = f'{name} (Ты)'
+            color = COLORS[1]
+
+        name_font_size = get_font_size(f'{name} (Ты)', self.width - rank_render.get_width(),
+                                       max_height=self.height)
+        name_render = pygame.font.SysFont(FONT_NAME, name_font_size).render(name, 1, color)
+
+        self.players[-1][1].update({'rank_render': rank_render,
+                                    'name_render': name_render,
+                                    'score_render': score_render})
 
     def remove_player(self, player):
-        for p in self.players:
-            if p[0] == player:
-                self.players.remove(p)
+        for player_info in self.players:
+            if player_info[0] == player:
+                self.players.remove(player_info)
                 break

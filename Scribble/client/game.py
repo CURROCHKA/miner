@@ -1,3 +1,4 @@
+import sys
 from math import hypot
 from typing import Any, Literal
 
@@ -11,6 +12,7 @@ from chat import Chat
 from bottom_bar import BottomBar
 from leaderboard import LeaderBoard
 from player import Player
+from network import Network
 
 from config import (
     Window,
@@ -19,12 +21,11 @@ from config import (
     WINDOW_SIZE,
     MARGIN,
     BORDER_THICKNESS,
-    SKIP_FONT_SIZE,
     BOARD_WIDTH,
     BOTTOM_BAR_WIDTH,
     MAX_PLAYERS,
+    get_font_size,
 )
-
 
 # for test
 WINDOW_SIZE = (1360, 768)
@@ -35,23 +36,22 @@ WINDOW_SIZE = (1360, 768)
 
 
 class Game(Window):
-    def __init__(self, connection=None):
+    def __init__(self, connection: Network = None):
         pygame.init()
         super().__init__(WINDOW_SIZE[0], WINDOW_SIZE[1], caption='Scribble', frame=FRAME)
         self.connection = connection
+        self.name = self.connection.name
 
         self.draw_color = COLORS[7]
         self.margin = self.width * MARGIN / 100
 
-        self.top_bar = TopBar(self.win, **self.__set_top_bar())
-        self.top_bar.change_round(1)
-        self.leaderboard = LeaderBoard(self.win, **self.__set_leaderboard())
+        self.players = []
+
+        self.top_bar = TopBar(self.win, **self.__set_top_bar(), game=self)
+        self.top_bar.update_round(1)
+        self.leaderboard = LeaderBoard(self.win, **self.__set_leaderboard(), game=self)
         self.board = Board(self.win, **self.__set_board(), game=self)
         self.chat = Chat(self.win, **self.__set_chat(), game=self)
-
-        self.players = []
-        for player in self.players:
-            self.leaderboard.add_player(player)
 
         self.skip_button = Button(self.win, **self.__set_skip_button())
         self.bottom_bar = BottomBar(self.win, **self.__set_bottom_bar(), game=self)
@@ -63,6 +63,11 @@ class Game(Window):
         self.players.append(player)
         self.leaderboard.add_player(player)
         self.update_skip_button_pos(direction=1)
+
+    def remove_player(self, player):
+        self.players.remove(player)
+        self.leaderboard.remove_player(player)
+        self.update_skip_button_pos(direction=-1)
 
     def set_draw_color(self, draw_color: tuple[int, int, int]):
         self.draw_color = draw_color
@@ -96,9 +101,9 @@ class Game(Window):
         y = self.leaderboard.height * len(self.players) + self.top_bar.height + self.margin * 3
         width = self.leaderboard.width / 2
         height = self.leaderboard.height
-        text = 'Skip'
+        text = 'Пропустить'
         border_thickness = int(self.margin / BORDER_THICKNESS)
-        font_size = int(height / len(text) * SKIP_FONT_SIZE)
+        font_size = get_font_size(text, int(width - border_thickness / 2), int(height - border_thickness * 2))
         font = pygame.font.SysFont('consolas', font_size, bold=True)
         on_click = self.skip
         args = {
@@ -149,6 +154,9 @@ class Game(Window):
         }
         return args
 
+    def get_players_name(self):
+        return [player.get_name() for player in self.players]
+
     @staticmethod
     def interpolate_points(point1, point2):
         x1, y1 = point1
@@ -168,24 +176,23 @@ class Game(Window):
             if COLORS[key] == self.draw_color:
                 return key
 
-    def check_cliks(self):
-        mouse_pos = pygame.mouse.get_pos()
+    def check_clicks(self):
+        if self.drawing:
+            mouse_pos = pygame.mouse.get_pos()
 
-        if self.last_pos:
-            for point in self.interpolate_points(self.last_pos, mouse_pos):
-                clicked_board = self.board.click(*point)
-                if clicked_board:
-                    self.board.update(*clicked_board, self.draw_color)
-                    if self.connection:
+            if self.last_pos:
+                for point in self.interpolate_points(self.last_pos, mouse_pos):
+                    clicked_board = self.board.click(*point)
+                    if clicked_board:
+                        self.board.update(*clicked_board, self.draw_color)
                         self.connection.send({7: [*clicked_board, self.decode_color()]})
 
-        clicked_board = self.board.click(*mouse_pos)
-        if clicked_board:
-            self.board.update(*clicked_board, self.draw_color)
-            if self.connection:
+            clicked_board = self.board.click(*mouse_pos)
+            if clicked_board:
+                self.board.update(*clicked_board, self.draw_color)
                 self.connection.send({7: [*clicked_board, self.decode_color()]})
 
-        self.last_pos = mouse_pos
+            self.last_pos = mouse_pos
 
     def set_board(self):
         board = self.connection.send({3: []})
@@ -194,7 +201,7 @@ class Game(Window):
 
     def set_time(self):
         response = self.connection.send({8: []})
-        self.top_bar.time = response
+        self.top_bar.update_time(response)
 
     def set_chat_content(self):
         response = self.connection.send({2: []})
@@ -202,19 +209,28 @@ class Game(Window):
 
     def set_word(self):
         word = self.connection.send({6: []})
-        self.top_bar.change_word(word)
-
-    def set_round(self):
-        rnd = self.connection.send({5: []})
-        self.top_bar.change_round(rnd)
+        self.top_bar.update_word(word)
 
     def set_drawing(self):
         drawing = self.connection.send({10: []})
         self.drawing = drawing
 
-    def set_top_bar_info(self):
-        self.top_bar.max_round = len(self.players)
+    def set_top_bar(self):
+        rnd = self.connection.send({5: []})
+        self.top_bar.update_round(rnd)
+        self.top_bar.update_max_round(len(self.players))
         self.top_bar.drawing = self.drawing
+
+    # def set_leaderboard(self):
+    #     new_player_name = self.connection.send({12: []})
+    #     if new_player_name:
+    #         new_player = Player(new_player_name)
+    #         self.add_player(new_player)
+
+    def player_disconnect(self):
+        players_name = self.get_players_name()
+        left_player = [self.players[i] for i, name in enumerate(players_name) if self.name == name][0]
+        self.remove_player(left_player)
 
     def draw(self, events):
         self.clock.tick(self.frame)
@@ -255,11 +271,11 @@ class Game(Window):
     def check_events(self, events: list[pygame.event.Event]):
         for event in events:
             if event.type == pygame.QUIT:
-                # self.leaderboard.remove_player()
+                self.player_disconnect()
                 pygame.quit()
-                quit()
-            if pygame.mouse.get_pressed()[0]:
-                self.check_cliks()
+                sys.exit()
+            if pygame.mouse.get_pressed()[0] and self.drawing:
+                self.check_clicks()
             else:
                 self.last_pos = None
 
@@ -279,20 +295,20 @@ class Game(Window):
 
                 # get round information
                 self.set_word()
-                self.set_round()
                 self.set_drawing()
-                self.set_top_bar_info()
+                self.set_top_bar()
 
                 # get players update
                 # response = self.connection.send({-1: []})
-                # self.players = []
-                # self.leaderboard.players = []
-                # self.skip_button = Button(self.win, **self.__set_skip_button())
-                # for player_name in response:
-                #     player = Player(player_name)
-                #     self.players.append(player)
-                #     self.leaderboard.add_player(player)
-                #     self.update_skip_button_pos(direction=1)
+                # players_name = self.get_players_name()
+                # if set(response) != set(players_name):
+                #     self.players = []
+                #     self.leaderboard.players = []
+                #     for player_name in response:
+                #         player = Player(player_name)
+                #         self.players.append(player)
+                #         self.leaderboard.add_player(player)
+                #     self.skip_button = Button(self.win, **self.__set_skip_button())
 
             except Exception as e:
                 print(e)

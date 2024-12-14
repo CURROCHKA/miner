@@ -4,8 +4,8 @@ import json
 import zlib
 import traceback
 
-from Scribble.server.player import Player
-from Scribble.server.game import Game
+from player import Player
+from game import Game
 from config import (
     PLAYERS,
 )
@@ -33,13 +33,16 @@ class Server:
                 send_msg = {key: [] for key in keys}
 
                 for key in keys:
-                    if key == -1:  # get a list of players
-                        if player.game:
-                            send_msg[-1] = [player.get_name() for player in player.game.players]
-                        else:
-                            send_msg[-1] = []
+                    # if key == -1:  # get a list of players
+                    #     if player.game:
+                    #         send_msg[-1] = [player.get_name() for player in player.game.players]
+                    #     else:
+                    #         send_msg[-1] = []
 
                     if player.game:
+                        if key == -1:  # get a list of players
+                            send_msg[-1] = [player.get_name() for player in player.game.players]
+
                         if key == 0:  # guess
                             correct = player.game.player_guess(player, data['0'][0])
                             send_msg[0] = [player.get_name(), correct]
@@ -101,7 +104,6 @@ class Server:
             self.connection_queue.remove(player)
 
         print(f'[DISCONNECT] {player.get_name()} disconnected')
-        # connection.sendall(player.get_name().encode())
         connection.close()
 
     def handle_queue(self, player: Player) -> None:

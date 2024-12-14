@@ -2,7 +2,8 @@ import pygame
 from pygame_widgets.button import ButtonArray
 
 from config import (
-    COLORS
+    COLORS,
+    get_font_size,
 )
 
 
@@ -29,16 +30,21 @@ class BottomBar:
             onClicks=[self.color_click] * 8
         )
 
-        self.brush_img, self.brush_text, self.brush_color = self.set_spec_button('images/brush.png', 'Brush')
-        self.erase_img, self.erase_text, self.erase_color = self.set_spec_button('images/eraser.png', 'Erase')
-        self.filling_img, self.filling_text, self.filling_color = self.set_spec_button('images/filling.png', 'Filling')
-        self.trash_img, self.trash_text, self.trash_color = self.set_spec_button('images/trash.png', 'Clear')
+        self.brush_img, self.brush_text, self.brush_color =\
+            self.set_spec_button('images/brush.png', 'Кисточка')
+        self.erase_img, self.erase_text, self.erase_color =\
+            self.set_spec_button('images/eraser.png', 'Ластик')
+        self.filling_img, self.filling_text, self.filling_color =\
+            self.set_spec_button('images/filling.png', 'Заливка')
+        self.trash_img, self.trash_text, self.trash_color =\
+            self.set_spec_button('images/trash.png', 'Очистка')
+        self.spec_buttons_font_sizes = tuple(get_font_size(text, self.width, self.height) for text in [self.brush_text, self.erase_text, self.filling_text, self.trash_text])
 
         self.spec_buttons = ButtonArray(
             self.win,
             self.color_buttons.getWidth() + self.color_buttons.getX() + self.margin,
             self.y,
-            int(self.width),
+            self.width,
             self.height,
             (4, 1),
             border=0,
@@ -47,6 +53,7 @@ class BottomBar:
             texts=(self.brush_text, self.erase_text, self.filling_text, self.trash_text),
             images=(self.brush_img, self.erase_img, self.filling_img, self.trash_img),
             onClicks=(self.brush_click, self.erase_click, self.filling_click, self.trash_click),
+            fontSizes=self.spec_buttons_font_sizes,
         )
 
         self.brush_already_pressed = False

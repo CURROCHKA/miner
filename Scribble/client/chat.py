@@ -5,6 +5,7 @@ from config import (
     COLORS,
     BORDER_THICKNESS,
     FONT_NAME,
+    CHAT_FONT_SIZE,
 )
 
 
@@ -20,9 +21,10 @@ class Chat:
         self.text_box_height = height - self.height
         self.content_gap = int(self.margin * 3)
         self.content = []
-        self.font_size = int(self.width / 15)
-        self.chat_font = pygame.font.SysFont(FONT_NAME, self.font_size)
         self.border_thickness = int(self.margin / BORDER_THICKNESS)
+
+        self.font_size = int(self.game.width * CHAT_FONT_SIZE)
+        self.chat_font = pygame.font.SysFont(FONT_NAME, self.font_size)
         self.text_box = TextBox(
             self.win,
             int(self.x - self.border_thickness / 2),
@@ -31,7 +33,7 @@ class Chat:
             int(self.text_box_height + self.border_thickness / 2),
             colour=COLORS[8],
             borderThickness=self.border_thickness,
-            placeholderText='Write something',
+            placeholderText='Напишите что-нибудь',
             fontSize=self.font_size,
             font=self.chat_font,
             onSubmit=self.text_box_submit,
@@ -40,7 +42,8 @@ class Chat:
     def text_box_submit(self):
         msg = self.text_box.getText()
         self.text_box.setText('')
-        self.update_chat(msg)
+        if len(msg.strip()) >= 1:
+            self.update_chat(msg)
 
     def update_chat(self, content):
         if isinstance(content, str):
@@ -67,6 +70,7 @@ class Chat:
             if is_sys_msg:
                 bold = True
                 text = msg
+                color = COLORS[1]
 
             self.chat_font.set_bold(bold)
             txt = self.chat_font.render(text, 1, color)
