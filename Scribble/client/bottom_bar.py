@@ -61,6 +61,7 @@ class BottomBar:
         self.filling_already_pressed = False
         self.old_draw_color = self.game.draw_color
 
+        self.active_spec_button = 'brush'
         self.enable_brush()
 
     def set_spec_button(self, path_to_img: str = '', text: str = '') -> tuple[pygame.Surface, str, tuple[int, int, int]]:
@@ -79,9 +80,12 @@ class BottomBar:
         return img, button_text, button_color
 
     def enable_brush(self):
-        self.disable_filling()
-        self.disable_erase()
+        if self.active_spec_button == 'filling':
+            self.disable_filling()
+        elif self.active_spec_button == 'erase':
+            self.disable_erase()
 
+        self.active_spec_button = 'brush'
         self.brush_already_pressed = True
         self.spec_buttons.buttons[0].inactiveColour = self.spec_buttons.buttons[0].pressedColour
 
@@ -94,30 +98,35 @@ class BottomBar:
             self.enable_brush()
 
     def enable_erase(self):
-        self.disable_filling()
-        self.disable_brush()
+        if self.active_spec_button == 'filling':
+            self.disable_filling()
+        elif self.active_spec_button == 'brush':
+            self.disable_brush()
 
+        self.active_spec_button = 'erase'
         self.old_draw_color = self.game.draw_color
         self.game.set_draw_color(COLORS[0])
         self.erase_already_pressed = True
         self.spec_buttons.buttons[1].inactiveColour = self.spec_buttons.buttons[1].pressedColour
 
     def disable_erase(self):
-        self.game.set_draw_color(self.old_draw_color)
         self.erase_already_pressed = False
         self.spec_buttons.buttons[1].inactiveColour = self.erase_color
+        self.game.set_draw_color(self.old_draw_color)
 
     def erase_click(self):
         if self.erase_already_pressed:
-            self.disable_erase()
             self.enable_brush()
         else:
             self.enable_erase()
 
     def enable_filling(self):
-        self.disable_erase()
-        self.disable_brush()
+        if self.active_spec_button == 'erase':
+            self.disable_erase()
+        elif self.active_spec_button == 'brush':
+            self.disable_brush()
 
+        self.active_spec_button = 'filling'
         self.game.board.filling = True
         self.filling_already_pressed = True
         self.spec_buttons.buttons[2].inactiveColour = self.spec_buttons.buttons[2].pressedColour
@@ -131,7 +140,6 @@ class BottomBar:
 
     def filling_click(self):
         if self.filling_already_pressed:
-            self.disable_filling()
             self.enable_brush()
         else:
             self.enable_filling()

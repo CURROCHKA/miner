@@ -76,8 +76,6 @@ class Board:
                 ):
                     queue.append((nx, ny))
                     visited.add((nx, ny))
-                    # if self.game.connection:
-                    #     self.game.connection.send({7: [nx, ny, self.game.decode_color()]})
 
     @staticmethod
     def is_valid_coord(row: int, col: int):
