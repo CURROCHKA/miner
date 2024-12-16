@@ -60,7 +60,6 @@ class Chat:
         for i, content in enumerate(self.content):
             player_name, msg, guess, is_sys_msg = content
 
-            bold = False
             text = f'{player_name}: {msg}'
             color = COLORS[7]
 
@@ -68,11 +67,9 @@ class Chat:
                 color = COLORS[1]
 
             if is_sys_msg:
-                bold = True
                 text = msg
                 color = COLORS[1]
 
-            self.chat_font.set_bold(bold)
             txt = self.chat_font.render(text, 1, color)
             self.chat_font.set_bold(False)
             self.win.blit(txt, (self.x + self.content_gap, self.y + self.content_gap / 2 + i * self.content_gap))

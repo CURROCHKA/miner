@@ -221,6 +221,16 @@ class Game(Window):
         self.top_bar.update_max_round(len(self.players))
         self.top_bar.drawing = self.drawing
 
+    def set_score(self):
+        scores = self.connection.send({4: []})
+        if scores:
+            for name in scores:
+                for player in self.players:
+                    if player.get_name() == name:
+                        score = scores[name]
+                        player.update_score(score)
+            self.leaderboard.update_rank_and_scores()
+
     # def set_leaderboard(self):
     #     new_player_name = self.connection.send({12: []})
     #     if new_player_name:
@@ -297,6 +307,7 @@ class Game(Window):
                 self.set_word()
                 self.set_drawing()
                 self.set_top_bar()
+                self.set_score()
 
                 # get players update
                 # response = self.connection.send({-1: []})

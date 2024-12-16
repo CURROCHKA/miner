@@ -88,15 +88,29 @@ class LeaderBoard:
             if current_player == player:
                 return rank
 
+    def get_rank_and_score_render(self, rank: int, score: int):
+        rank_render = render_text(f'# {rank}', font_size=self.rank_font_size)
+        score_render = render_text(f'Счёт: {score}', font_size=self.score_font_size)
+        return rank_render, score_render
+
+    def update_rank_and_scores(self):
+        for i, player_info in enumerate(self.players):
+            player = player_info[0]
+            rank = self.get_rank(player)
+            score = player.get_score()
+
+            rank_render, score_render = self.get_rank_and_score_render(rank, score)
+            self.players[i][1]['rank_render'] = rank_render
+            self.players[i][1]['score_render'] = score_render
+
     def add_player(self, player):
         self.players.append((player, {}))
 
+        rank = self.get_rank(player)
         name = player.get_name()
         score = player.get_score()
-        rank = self.get_rank(player)
 
-        rank_render = render_text(f'# {rank}', font_size=self.rank_font_size)
-        score_render = render_text(f'Счёт: {score}', font_size=self.score_font_size)
+        rank_render, score_render = self.get_rank_and_score_render(rank, score)
 
         color = COLORS[7]
         if name == self.game.name:

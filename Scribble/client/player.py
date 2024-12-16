@@ -4,7 +4,7 @@ class Player:
         self.score = 0
 
     def update_score(self, score: int):
-        self.score += score
+        self.score = score
 
     def get_score(self):
         return self.score

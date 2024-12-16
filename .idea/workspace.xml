@@ -4,10 +4,12 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="e9aa74d5-5a94-41b4-b2b6-1ab1cd7e9334" name="Changes" comment="made the UI more responsive, fixed bug">
+    <list default="true" id="e9aa74d5-5a94-41b4-b2b6-1ab1cd7e9334" name="Changes" comment="fixed bug: the fill, brush and eraser did not work well together">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Scribble/client/board.py" beforeDir="false" afterPath="$PROJECT_DIR$/Scribble/client/board.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Scribble/client/bottom_bar.py" beforeDir="false" afterPath="$PROJECT_DIR$/Scribble/client/bottom_bar.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Scribble/client/chat.py" beforeDir="false" afterPath="$PROJECT_DIR$/Scribble/client/chat.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Scribble/client/game.py" beforeDir="false" afterPath="$PROJECT_DIR$/Scribble/client/game.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Scribble/client/leaderboard.py" beforeDir="false" afterPath="$PROJECT_DIR$/Scribble/client/leaderboard.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Scribble/client/player.py" beforeDir="false" afterPath="$PROJECT_DIR$/Scribble/client/player.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -272,7 +274,15 @@
       <option name="project" value="LOCAL" />
       <updated>1734206367887</updated>
     </task>
-    <option name="localTasksCounter" value="8" />
+    <task id="LOCAL-00008" summary="fixed bug: the fill, brush and eraser did not work well together">
+      <option name="closed" value="true" />
+      <created>1734218900693</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1734218900693</updated>
+    </task>
+    <option name="localTasksCounter" value="9" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -304,6 +314,7 @@
     <MESSAGE value="now it is not possible to connect with the same names to different users" />
     <MESSAGE value="a brush has been added, now it's impossible to take 2 spec_button (previously it was possible)." />
     <MESSAGE value="made the UI more responsive, fixed bug" />
-    <option name="LAST_COMMIT_MESSAGE" value="made the UI more responsive, fixed bug" />
+    <MESSAGE value="fixed bug: the fill, brush and eraser did not work well together" />
+    <option name="LAST_COMMIT_MESSAGE" value="fixed bug: the fill, brush and eraser did not work well together" />
   </component>
 </project>
