@@ -20,8 +20,7 @@ class Round:
     def skip(self, player) -> bool:
         if self.player_drawing == player:
             self.chat.update_chat('',
-                                  f'Игрок {player.get_name()} пропустил свой ход',
-                                  True)
+                                  f'Игрок {player.get_name()} пропустил свой ход', False, True)
             return True
         return False
 
@@ -47,10 +46,11 @@ class Round:
         correct = self.word.lower() == msg.lower()
         if correct:
             self.players_guessed.append(player)
-            self.chat.update_chat('', f'{player.get_name()} отгадал слово', True)
+            player_name = player.get_name()
+            self.chat.update_chat(player_name, f'{player_name} отгадал слово', True, True)
             self.player_scores[player] += 1
             return True
-        self.chat.update_chat(player.get_name(), msg, False)
+        self.chat.update_chat(player.get_name(), msg, False, False)
         return False
 
     def player_left(self, player: Player) -> None:
@@ -61,7 +61,8 @@ class Round:
             self.players_guessed.remove(player)
 
         if player == self.player_drawing:
-            self.chat.update_chat('', f'Раунд {self.game.round_count} был пропущен, так как рисовальщик ушёл', True)
+            self.chat.update_chat('', f'Раунд {self.game.round_count} был пропущен, так как рисовальщик ушёл', False,
+                                  True)
             self.end_round()
 
     def end_round(self):

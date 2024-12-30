@@ -47,14 +47,22 @@ class Chat:
 
     def update_chat(self, content):
         if isinstance(content, str):
-            player_name, guess = self.game.connection.send({0: [content]})
-            self.content = [(player_name, content, guess, False)]
+            player_name = self.game.name
+            guess = self.game.connection.send({0: [content]})[0]
+            self.content.append((player_name, content, guess, False))
+            if guess:
+                player = self.game.get_player(player_name)
+                self.game.leaderboard.player_guess(player)
         else:
-            res = []
             for item in content:
-                player_name, msg, is_sys_msg = item
-                res.append((player_name, msg, False, is_sys_msg))
-            self.content = res
+                player_name, _, guess, _ = item
+                if player_name == self.game.name:
+                    break
+
+                if guess:
+                    player = self.game.get_player(player_name)
+                    self.game.leaderboard.player_guess(player)
+                self.content.append(item)
 
     def draw(self):
         for i, content in enumerate(self.content):

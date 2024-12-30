@@ -23,6 +23,7 @@ class LeaderBoard:
         self.players = []  # [(player: Player, {'rank_render': pygame.Surface,
                                                 # 'name_render': pygame.Surface,
                                                 # 'score_render': pygame.Surface}]
+        self.players_guessed = set()
 
         self.score_font_size = int(self.width / 15)
         self.score_font = pygame.font.SysFont(FONT_NAME, self.score_font_size)
@@ -32,12 +33,15 @@ class LeaderBoard:
 
     def draw(self):
         for i, player_info in enumerate(self.players):
+            player = player_info[0]
             rank_render = player_info[1]['rank_render']
             name_render = player_info[1]['name_render']
             score_render = player_info[1]['score_render']
 
             if i % 2 == 0:
                 color = COLORS[0]
+            elif player in self.players_guessed:
+                color = COLORS[2]
             else:
                 color = COLORS[8]
 
@@ -81,6 +85,9 @@ class LeaderBoard:
             ranks.append((player, current_rank))
 
         return ranks
+
+    def player_guess(self, player):
+        self.players_guessed.add(player)
 
     def get_rank(self, player):
         ranks = self.assign_ranks()

@@ -33,25 +33,19 @@ class Server:
                 send_msg = {key: [] for key in keys}
 
                 for key in keys:
-                    # if key == -1:  # get a list of players
-                    #     if player.game:
-                    #         send_msg[-1] = [player.get_name() for player in player.game.players]
-                    #     else:
-                    #         send_msg[-1] = []
-
                     if player.game:
                         if key == -1:  # get a list of players
                             send_msg[-1] = [player.get_name() for player in player.game.players]
 
-                        if key == 0:  # guess
+                        if key == 0:  # guess or text
                             correct = player.game.player_guess(player, data['0'][0])
-                            send_msg[0] = [player.get_name(), correct]
+                            send_msg[0] = [correct]
 
                         elif key == 1:  # skip
                             send_msg[1] = player.game.skip(player)
 
-                        elif key == 2:  # get chat
-                            send_msg[2] = player.game.round.chat.get_chat()
+                        elif key == 2:  # get chat new content
+                            send_msg[2] = player.game.round.chat.get_new_content()
 
                         elif key == 3:  # get board
                             board = player.game.board.get_board()

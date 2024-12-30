@@ -18,7 +18,7 @@ class TopBar:
         self.game = game
         self.border_thickness = int(self.margin / BORDER_THICKNESS)
 
-        self.round = 1
+        self.round = 0
         self.max_round = self.round
         self.word = ''
         self.time = 75

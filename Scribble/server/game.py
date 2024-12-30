@@ -46,7 +46,7 @@ class Game:
 
             self.players.remove(player)
             self.round.player_left(player)
-            self.round.chat.update_chat('', f'Игрок {player.get_name()} отключился', True)
+            self.round.chat.update_chat('', f'Игрок {player.get_name()} отключился', False, True)
         else:
             raise Exception('Player not in game')
 
@@ -61,7 +61,7 @@ class Game:
         if self.round:
             new_round = self.round.skip(player)
             if new_round:
-                self.round.chat.update_chat('', f'Раунд {self.round_count} был пропущен', True)
+                self.round.chat.update_chat('', f'Раунд {self.round_count} был пропущен', False, True)
                 self.round_ended()
                 return True
             return False
@@ -69,7 +69,7 @@ class Game:
             raise Exception('No round started yet!')
 
     def round_ended(self):
-        self.round.chat.update_chat('', f'Раунд {self.round_count} был завершен', True)
+        self.round.chat.update_chat('', f'Раунд {self.round_count} был завершен', False, True)
         self.board.clear()
         self.start_new_round()
 

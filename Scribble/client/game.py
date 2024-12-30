@@ -154,8 +154,10 @@ class Game(Window):
         }
         return args
 
-    def get_players_name(self):
-        return [player.get_name() for player in self.players]
+    def get_player(self, player_name: str) -> Player:
+        for player in self.players:
+            if player.get_name() == player_name:
+                return player
 
     @staticmethod
     def interpolate_points(point1, point2):
@@ -196,50 +198,49 @@ class Game(Window):
 
     def set_board(self):
         board = self.connection.send({3: []})
-        self.board.compressed_grid = board
-        self.board.translate_board()
+        if board != self.board.compressed_grid:
+            self.board.compressed_grid = board
+            self.board.translate_board()
 
     def set_time(self):
-        response = self.connection.send({8: []})
-        self.top_bar.update_time(response)
+        time = self.connection.send({8: []})
+        if time != self.top_bar.time:
+            self.top_bar.update_time(time)
 
     def set_chat_content(self):
-        response = self.connection.send({2: []})
-        self.chat.update_chat(response)
+        content = self.connection.send({2: []})
+        if content != self.chat.content:
+            self.chat.update_chat(content)
 
     def set_word(self):
         word = self.connection.send({6: []})
-        self.top_bar.update_word(word)
+        if word != self.top_bar.word:
+            self.top_bar.update_word(word)
 
     def set_drawing(self):
         drawing = self.connection.send({10: []})
-        self.drawing = drawing
+        if drawing != self.drawing:
+            self.drawing = drawing
 
-    def set_top_bar(self):
+    def set_round(self):
         rnd = self.connection.send({5: []})
-        self.top_bar.update_round(rnd)
-        self.top_bar.update_max_round(len(self.players))
-        self.top_bar.drawing = self.drawing
+        if self.top_bar.round != rnd:
+            self.leaderboard.players_guessed = set()
+            self.top_bar.update_round(rnd)
+
+            # self.top_bar.update_max_round(len(self.players))
 
     def set_score(self):
         scores = self.connection.send({4: []})
-        if scores:
-            for name in scores:
-                for player in self.players:
-                    if player.get_name() == name:
-                        score = scores[name]
-                        player.update_score(score)
-            self.leaderboard.update_rank_and_scores()
-
-    # def set_leaderboard(self):
-    #     new_player_name = self.connection.send({12: []})
-    #     if new_player_name:
-    #         new_player = Player(new_player_name)
-    #         self.add_player(new_player)
+        for name in scores:
+            for player in self.players:
+                if player.get_name() == name:
+                    score = scores[name]
+                    player.update_score(score)
+        self.leaderboard.update_rank_and_scores()
 
     def player_disconnect(self):
-        players_name = self.get_players_name()
-        left_player = [self.players[i] for i, name in enumerate(players_name) if self.name == name][0]
+        left_player = self.get_player(self.name)
         self.remove_player(left_player)
 
     def draw(self, events):
@@ -295,7 +296,8 @@ class Game(Window):
             events = pygame.event.get()
             try:
                 # get board
-                self.set_board()
+                if not self.drawing:
+                    self.set_board()
 
                 # get time
                 self.set_time()
@@ -304,9 +306,9 @@ class Game(Window):
                 self.set_chat_content()
 
                 # get round information
-                self.set_word()
+                self.set_round()
                 self.set_drawing()
-                self.set_top_bar()
+                self.set_word()
                 self.set_score()
 
                 # get players update

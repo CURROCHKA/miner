@@ -4,12 +4,16 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="e9aa74d5-5a94-41b4-b2b6-1ab1cd7e9334" name="Changes" comment="fixed bug: the fill, brush and eraser did not work well together">
+    <list default="true" id="e9aa74d5-5a94-41b4-b2b6-1ab1cd7e9334" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Scribble/client/chat.py" beforeDir="false" afterPath="$PROJECT_DIR$/Scribble/client/chat.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Scribble/client/game.py" beforeDir="false" afterPath="$PROJECT_DIR$/Scribble/client/game.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Scribble/client/leaderboard.py" beforeDir="false" afterPath="$PROJECT_DIR$/Scribble/client/leaderboard.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Scribble/client/player.py" beforeDir="false" afterPath="$PROJECT_DIR$/Scribble/client/player.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Scribble/client/top_bar.py" beforeDir="false" afterPath="$PROJECT_DIR$/Scribble/client/top_bar.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Scribble/server/chat.py" beforeDir="false" afterPath="$PROJECT_DIR$/Scribble/server/chat.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Scribble/server/game.py" beforeDir="false" afterPath="$PROJECT_DIR$/Scribble/server/game.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Scribble/server/request_handler.py" beforeDir="false" afterPath="$PROJECT_DIR$/Scribble/server/request_handler.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Scribble/server/round.py" beforeDir="false" afterPath="$PROJECT_DIR$/Scribble/server/round.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -282,7 +286,15 @@
       <option name="project" value="LOCAL" />
       <updated>1734218900693</updated>
     </task>
-    <option name="localTasksCounter" value="9" />
+    <task id="LOCAL-00009" summary="fixed bug: the fill, brush and eraser did not work well together">
+      <option name="closed" value="true" />
+      <created>1734370459900</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1734370459900</updated>
+    </task>
+    <option name="localTasksCounter" value="10" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
