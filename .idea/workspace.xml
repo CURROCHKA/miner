@@ -4,9 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="e9aa74d5-5a94-41b4-b2b6-1ab1cd7e9334" name="Changes" comment="added green fill when you guess a word(displayed for each player).&#10;TODO new_content must be reset by some condition">
-      <change afterPath="$PROJECT_DIR$/Scribble/test_new_chat_widget.py" afterDir="false" />
+    <list default="true" id="e9aa74d5-5a94-41b4-b2b6-1ab1cd7e9334" name="Changes" comment="added Ctrl + A combination. Need to fill the selected text with a spec color (blue by default)">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Scribble/test_new_chat_widget.py" beforeDir="false" afterPath="$PROJECT_DIR$/Scribble/test_new_textbox_widget.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -54,6 +54,7 @@
     "Python.server.executor": "Run",
     "Python.temp.executor": "Run",
     "Python.test_new_chat_widget.executor": "Run",
+    "Python.test_new_textbox_widget.executor": "Run",
     "Python.textbox.executor": "Run",
     "RunOnceActivity.OpenProjectViewOnStart": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
@@ -78,7 +79,7 @@
       <recent name="F:\Projects\IvanTasks\Scribble\client\images" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.test_new_chat_widget">
+  <component name="RunManager" selected="Python.test_new_textbox_widget">
     <configuration name="game" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="IvanTasks" />
       <option name="ENV_FILES" value="" />
@@ -168,7 +169,7 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="test_new_chat_widget" type="PythonConfigurationType" factoryName="Python">
+    <configuration name="test_new_textbox_widget" type="PythonConfigurationType" factoryName="Python">
       <module name="IvanTasks" />
       <option name="ENV_FILES" value="" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -182,7 +183,7 @@
       <option name="IS_MODULE_SDK" value="false" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/Scribble/test_new_chat_widget.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/Scribble/test_new_textbox_widget.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -215,7 +216,7 @@
     </configuration>
     <list>
       <item itemvalue="Python.server" />
-      <item itemvalue="Python.test_new_chat_widget" />
+      <item itemvalue="Python.test_new_textbox_widget" />
       <item itemvalue="Python.game" />
       <item itemvalue="Python.temp" />
       <item itemvalue="Python.textbox" />
@@ -223,10 +224,10 @@
     </list>
     <recent_temporary>
       <list>
-        <item itemvalue="Python.pygame_test" />
         <item itemvalue="Python.temp" />
-        <item itemvalue="Python.game" />
         <item itemvalue="Python.textbox" />
+        <item itemvalue="Python.pygame_test" />
+        <item itemvalue="Python.game" />
       </list>
     </recent_temporary>
   </component>
@@ -322,7 +323,15 @@
       <option name="project" value="LOCAL" />
       <updated>1735587799046</updated>
     </task>
-    <option name="localTasksCounter" value="11" />
+    <task id="LOCAL-00011" summary="added Ctrl + A combination. Need to fill the selected text with a spec color (blue by default)">
+      <option name="closed" value="true" />
+      <created>1735643909512</created>
+      <option name="number" value="00011" />
+      <option name="presentableId" value="LOCAL-00011" />
+      <option name="project" value="LOCAL" />
+      <updated>1735643909512</updated>
+    </task>
+    <option name="localTasksCounter" value="12" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -356,6 +365,7 @@
     <MESSAGE value="made the UI more responsive, fixed bug" />
     <MESSAGE value="fixed bug: the fill, brush and eraser did not work well together" />
     <MESSAGE value="added green fill when you guess a word(displayed for each player).&#10;TODO new_content must be reset by some condition" />
-    <option name="LAST_COMMIT_MESSAGE" value="added green fill when you guess a word(displayed for each player).&#10;TODO new_content must be reset by some condition" />
+    <MESSAGE value="added Ctrl + A combination. Need to fill the selected text with a spec color (blue by default)" />
+    <option name="LAST_COMMIT_MESSAGE" value="added Ctrl + A combination. Need to fill the selected text with a spec color (blue by default)" />
   </component>
 </project>

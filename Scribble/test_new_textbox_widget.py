@@ -10,6 +10,10 @@ class MyTextBox(TextBox):
     def __init__(self, win: pygame.Surface, x: int, y: int, width: int, height: int, isSubWidget=False, **kwargs):
         super().__init__(win, x, y, width, height, isSubWidget, **kwargs)
         self.selected_text = []
+        self.select_start_index = 0
+        self.select_end_index = 0
+
+        self.selected_text_colour = kwargs.get('selectedTextColour', (0, 0, 255))
 
     def listen(self, events):
         if not self._hidden and not self._disabled:
@@ -19,22 +23,57 @@ class MyTextBox(TextBox):
             mouseState = Mouse.getMouseState()
             x, y = Mouse.getMousePos()
 
+            keys = pygame.key.get_pressed()
+
+            if keys[pygame.K_LCTRL] and keys[pygame.K_a]:
+                self.cursorPosition = len(self.text)
+                self.select_start_index = 0
+                self.select_end_index = len(self.text)
+                self.select_text()
+
             if mouseState == MouseState.CLICK:
                 if self.contains(x, y):
                     self.selected = True
                     self.showCursor = True
                     self.cursorTime = time.time()
 
+                    coord = [self._x + self.textOffsetLeft]
+                    for symbol_index in range(len(self.text) - 1):
+                        symbol_render1 = self.font.render(self.text[symbol_index], True, self.textColour)
+                        symbol_render2 = self.font.render(self.text[symbol_index + 1], True, self.textColour)
+                        x1 = symbol_render1.get_width() + coord[-1]
+                        x2 = symbol_render2.get_width() + x1
+                        coord.append(x1)
+                        if x1 - symbol_render1.get_width() / 2 <= x <= x2 + symbol_render2.get_width() / 2:
+                            self.cursorPosition = symbol_index + 1
+
+                    if self.text:
+                        if self._x <= x <= self._x + self.textOffsetLeft + self.font.render(self.text[0], True, self.textColour).get_width() / 2:
+                            self.cursorPosition = 0
+                        elif self._x + self.textOffsetLeft + self.font.size(self.getText())[0] <= x <= self._width:
+                            self.cursorPosition = len(self.text)
+
+                    self.select_start_index = self.cursorPosition
+
                 else:
                     self.selected = False
                     self.showCursor = False
                     self.cursorTime = time.time()
 
-            keys = pygame.key.get_pressed()
+            elif mouseState == MouseState.RELEASE:
+                if self.contains(x, y):
+                    coord = [self._x + self.textOffsetLeft]
+                    for symbol_index in range(len(self.text) - 1):
+                        symbol_render1 = self.font.render(self.text[symbol_index], True, self.textColour)
+                        symbol_render2 = self.font.render(self.text[symbol_index + 1], True, self.textColour)
+                        x1 = symbol_render1.get_width() + coord[-1]
+                        x2 = symbol_render2.get_width() + x1
+                        coord.append(x1)
+                        if x1 - symbol_render1.get_width() / 2 <= x <= x2 + symbol_render2.get_width() / 2:
+                            self.cursorPosition = symbol_index + 1
 
-            if keys[pygame.K_LCTRL] and keys[pygame.K_a]:
-                self.selected_text = self.getText()
-                # TODO fill the selected text with a spec color (blue by default)
+                    self.select_end_index = self.cursorPosition
+                    self.select_text()
 
             # Keyboard Input
             if self.selected:
@@ -48,8 +87,8 @@ class MyTextBox(TextBox):
                         if event.key == pygame.K_BACKSPACE:
                             if self.cursorPosition != 0:
                                 self.maxLengthReached = False
-                                if len(self.selected_text) != 0:
-                                    self.erase_selected_text()
+                                if self.selected_text:
+                                    self.erase_text()
                                 else:
                                     self.text.pop(self.cursorPosition - 1)
                                 self.onTextChanged(*self.onTextChangedParams)
@@ -57,6 +96,9 @@ class MyTextBox(TextBox):
                             self.cursorPosition = max(self.cursorPosition - 1, 0)
 
                         elif event.key == pygame.K_DELETE:
+                            if self.selected_text:
+                                self.erase_text()
+                                self.cursorPosition = 0
                             if not self.cursorPosition >= len(self.text):
                                 self.maxLengthReached = False
                                 self.text.pop(self.cursorPosition)
@@ -67,12 +109,15 @@ class MyTextBox(TextBox):
 
                         elif event.key == pygame.K_RIGHT:
                             self.cursorPosition = min(self.cursorPosition + 1, len(self.text))
+                            self.select_start_index = self.select_end_index = 0
 
                         elif event.key == pygame.K_LEFT:
                             self.cursorPosition = max(self.cursorPosition - 1, 0)
+                            self.select_start_index = self.select_end_index = 0
 
                         elif event.key == pygame.K_END:
                             self.cursorPosition = len(self.text)
+                            self.select_start_index = self.select_end_index = 0
 
                         elif event.key == pygame.K_ESCAPE:
                             if not self.escape:
@@ -82,11 +127,13 @@ class MyTextBox(TextBox):
                                 self.repeatKey = None
                                 self.keyDown = None
                                 self.firstRepeat = True
+                                self.select_start_index = self.select_end_index = 0
 
                         elif not self.maxLengthReached:
                             symbol = event.unicode
                             if len(symbol) > 0:
-                                if not (0 <= ord(symbol) <= 32):
+                                if not (0 <= ord(symbol) <= 31):
+                                    self.select_start_index = self.select_end_index = 0
                                     self.text.insert(self.cursorPosition, symbol)
                                     self.cursorPosition += 1
                                     self.onTextChanged(*self.onTextChangedParams)
@@ -97,12 +144,21 @@ class MyTextBox(TextBox):
                         self.firstRepeat = True
                         self.escape = False
 
-    def erase_selected_text(self):
+    def draw(self):
+        super().draw()
+        # TODO fill the selected text with a spec color (blue by default)
+
+    def erase_text(self):
         string = self.getText()
-        start = string.find(self.selected_text)
+        start = string.find(''.join(self.selected_text))
         end = start + len(self.selected_text) - 1
         self.text = self.text[:start] + self.text[end + 1:]
-        self.cursorPosition = 0
+        self.cursorPosition = start + 1
+
+    def select_text(self):
+        start_index = min(self.select_start_index, self.select_end_index)
+        end_index = max(self.select_start_index, self.select_end_index)
+        self.selected_text = self.text[start_index: end_index]
 
 
 if __name__ == '__main__':
