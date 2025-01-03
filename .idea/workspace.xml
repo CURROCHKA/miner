@@ -4,9 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="e9aa74d5-5a94-41b4-b2b6-1ab1cd7e9334" name="Changes" comment="added Ctrl + A combination. Need to fill the selected text with a spec color (blue by default)">
+    <list default="true" id="e9aa74d5-5a94-41b4-b2b6-1ab1cd7e9334" name="Changes" comment="added text selection using the mouse">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Scribble/test_new_chat_widget.py" beforeDir="false" afterPath="$PROJECT_DIR$/Scribble/test_new_textbox_widget.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Scribble/test_new_textbox_widget.py" beforeDir="false" afterPath="$PROJECT_DIR$/Scribble/test_new_textbox_widget.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -44,32 +44,33 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "ASKED_SHARE_PROJECT_CONFIGURATION_FILES": "true",
-    "Python tests.pytest in test_new_chat_widget.py.executor": "Run",
-    "Python.game.executor": "Run",
-    "Python.main.executor": "Run",
-    "Python.pygame_test.executor": "Run",
-    "Python.server.executor": "Run",
-    "Python.temp.executor": "Run",
-    "Python.test_new_chat_widget.executor": "Run",
-    "Python.test_new_textbox_widget.executor": "Run",
-    "Python.textbox.executor": "Run",
-    "RunOnceActivity.OpenProjectViewOnStart": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
-    "git-widget-placeholder": "creating__new__textbox__widget",
-    "last_opened_file_path": "F:/Projects/IvanTasks/Scribble",
-    "settings.editor.selected.configurable": "com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;ASKED_SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
+    &quot;Python tests.pytest in test_new_chat_widget.py.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.pytest in test_new_textbox_widget.py.executor&quot;: &quot;Run&quot;,
+    &quot;Python.game.executor&quot;: &quot;Run&quot;,
+    &quot;Python.main.executor&quot;: &quot;Run&quot;,
+    &quot;Python.pygame_test.executor&quot;: &quot;Run&quot;,
+    &quot;Python.server.executor&quot;: &quot;Run&quot;,
+    &quot;Python.temp.executor&quot;: &quot;Run&quot;,
+    &quot;Python.test_new_chat_widget.executor&quot;: &quot;Run&quot;,
+    &quot;Python.test_new_textbox_widget.executor&quot;: &quot;Run&quot;,
+    &quot;Python.textbox.executor&quot;: &quot;Run&quot;,
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;creating__new__textbox__widget&quot;,
+    &quot;last_opened_file_path&quot;: &quot;F:/Projects/IvanTasks/Scribble&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable&quot;
   },
-  "keyToStringList": {
-    "ChangesTree.GroupingKeys": [
-      "directory",
-      "repository"
+  &quot;keyToStringList&quot;: {
+    &quot;ChangesTree.GroupingKeys&quot;: [
+      &quot;directory&quot;,
+      &quot;repository&quot;
     ]
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="F:\Projects\IvanTasks\Scribble" />
@@ -224,8 +225,8 @@
     </list>
     <recent_temporary>
       <list>
-        <item itemvalue="Python.temp" />
         <item itemvalue="Python.textbox" />
+        <item itemvalue="Python.temp" />
         <item itemvalue="Python.pygame_test" />
         <item itemvalue="Python.game" />
       </list>
@@ -331,7 +332,15 @@
       <option name="project" value="LOCAL" />
       <updated>1735643909512</updated>
     </task>
-    <option name="localTasksCounter" value="12" />
+    <task id="LOCAL-00012" summary="added text selection using the mouse">
+      <option name="closed" value="true" />
+      <created>1735670221865</created>
+      <option name="number" value="00012" />
+      <option name="presentableId" value="LOCAL-00012" />
+      <option name="project" value="LOCAL" />
+      <updated>1735670221865</updated>
+    </task>
+    <option name="localTasksCounter" value="13" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -366,6 +375,7 @@
     <MESSAGE value="fixed bug: the fill, brush and eraser did not work well together" />
     <MESSAGE value="added green fill when you guess a word(displayed for each player).&#10;TODO new_content must be reset by some condition" />
     <MESSAGE value="added Ctrl + A combination. Need to fill the selected text with a spec color (blue by default)" />
-    <option name="LAST_COMMIT_MESSAGE" value="added Ctrl + A combination. Need to fill the selected text with a spec color (blue by default)" />
+    <MESSAGE value="added text selection using the mouse" />
+    <option name="LAST_COMMIT_MESSAGE" value="added text selection using the mouse" />
   </component>
 </project>
