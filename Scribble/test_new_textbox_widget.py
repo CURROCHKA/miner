@@ -12,6 +12,8 @@ class MyTextBox(TextBox):
         self.selected_text = []
         self.select_start_index = 0
         self.select_end_index = 0
+        # TODO The text is highlighted only in the row, but not in the column.
+        self.buffer = []
 
         self.selected_text_colour = kwargs.get('selectedTextColour', (0, 0, 255))
 
@@ -23,14 +25,6 @@ class MyTextBox(TextBox):
             mouseState = Mouse.getMouseState()
             x, y = Mouse.getMousePos()
 
-            keys = pygame.key.get_pressed()
-
-            if keys[pygame.K_LCTRL] and keys[pygame.K_a]:
-                self.cursorPosition = len(self.text)
-                self.select_start_index = 0
-                self.select_end_index = len(self.text)
-                self.select_text()
-
             if mouseState == MouseState.CLICK:
                 if self.contains(x, y):
                     self.selected = True
@@ -38,7 +32,7 @@ class MyTextBox(TextBox):
                     self.cursorTime = time.time()
                     self.select_start_index = self.select_end_index = 0
                     self.set_cursor_position(x)
-                    self.select_start_index = self.cursorPosition
+                    self.select_start_index = self.select_end_index = self.cursorPosition
 
                 else:
                     self.selected = False
@@ -61,10 +55,10 @@ class MyTextBox(TextBox):
                         self.repeatTime = time.time()
 
                         if event.key == pygame.K_BACKSPACE:
+                            self.maxLengthReached = False
                             if self.selected_text:
                                 self.erase_text()
                             elif self.cursorPosition != 0:
-                                self.maxLengthReached = False
                                 self.text.pop(self.cursorPosition - 1)
                                 self.onTextChanged(*self.onTextChangedParams)
 
@@ -87,6 +81,10 @@ class MyTextBox(TextBox):
 
                         elif event.key == pygame.K_LEFT:
                             self.cursorPosition = max(self.cursorPosition - 1, 0)
+                            self.reset_select()
+
+                        elif event.key == pygame.K_HOME:
+                            self.cursorPosition = 0
                             self.reset_select()
 
                         elif event.key == pygame.K_END:
@@ -112,12 +110,43 @@ class MyTextBox(TextBox):
                                     self.text.insert(self.cursorPosition, symbol)
                                     self.cursorPosition += 1
                                     self.onTextChanged(*self.onTextChangedParams)
+                                else:
+                                    self.listen_specific_symbol(event)
 
                     elif event.type == pygame.KEYUP:
                         self.repeatKey = None
                         self.keyDown = None
                         self.firstRepeat = True
                         self.escape = False
+
+    def listen_specific_symbol(self, event: pygame.event.Event):
+        symbol_ord = ord(event.unicode)
+        if symbol_ord == 1:  # Ctrl + A
+            self.cursorPosition = len(self.text)
+            self.select_start_index = 0
+            self.select_end_index = len(self.text)
+            self.select_text()
+
+        elif symbol_ord == 3:  # Ctrl + C
+            if self.selected_text:
+                self.buffer = self.selected_text
+
+        elif symbol_ord == 22:  # Ctrl + V
+            self.keyDown = True
+            self.repeatKey = event
+            self.repeatTime = time.time()
+
+            self.text = self.text[:self.cursorPosition] + self.buffer + self.text[len(self.buffer):]
+            self.cursorPosition += len(self.buffer)
+            self.onTextChanged(*self.onTextChangedParams)
+
+        elif symbol_ord == 24:  # Ctrl + X
+            if self.selected_text:
+                self.keyDown = True
+                self.repeatKey = event
+                self.repeatTime = time.time()
+                self.buffer = self.selected_text
+                self.erase_text()
 
     def draw(self):
         """ Display to surface """

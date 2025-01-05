@@ -4,7 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="e9aa74d5-5a94-41b4-b2b6-1ab1cd7e9334" name="Changes" comment="added text selection using the mouse">
+    <list default="true" id="e9aa74d5-5a94-41b4-b2b6-1ab1cd7e9334" name="Changes" comment="now you can select the text with the mouse and erase it. Also, the selected text is filled in with a specific color.">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Scribble/test_new_textbox_widget.py" beforeDir="false" afterPath="$PROJECT_DIR$/Scribble/test_new_textbox_widget.py" afterDir="false" />
     </list>
@@ -340,7 +340,15 @@
       <option name="project" value="LOCAL" />
       <updated>1735670221865</updated>
     </task>
-    <option name="localTasksCounter" value="13" />
+    <task id="LOCAL-00013" summary="now you can select the text with the mouse and erase it. Also, the selected text is filled in with a specific color.">
+      <option name="closed" value="true" />
+      <created>1735914067698</created>
+      <option name="number" value="00013" />
+      <option name="presentableId" value="LOCAL-00013" />
+      <option name="project" value="LOCAL" />
+      <updated>1735914067698</updated>
+    </task>
+    <option name="localTasksCounter" value="14" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -376,6 +384,7 @@
     <MESSAGE value="added green fill when you guess a word(displayed for each player).&#10;TODO new_content must be reset by some condition" />
     <MESSAGE value="added Ctrl + A combination. Need to fill the selected text with a spec color (blue by default)" />
     <MESSAGE value="added text selection using the mouse" />
-    <option name="LAST_COMMIT_MESSAGE" value="added text selection using the mouse" />
+    <MESSAGE value="now you can select the text with the mouse and erase it. Also, the selected text is filled in with a specific color." />
+    <option name="LAST_COMMIT_MESSAGE" value="now you can select the text with the mouse and erase it. Also, the selected text is filled in with a specific color." />
   </component>
 </project>
