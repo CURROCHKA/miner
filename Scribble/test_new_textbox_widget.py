@@ -6,12 +6,16 @@ from pygame_widgets.textbox import TextBox
 from pygame_widgets.mouse import Mouse, MouseState
 
 
+# TODO need to add scrolling through the text
+
+
 class MyTextBox(TextBox):
     def __init__(self, win: pygame.Surface, x: int, y: int, width: int, height: int, isSubWidget=False, **kwargs):
         super().__init__(win, x, y, width, height, isSubWidget, **kwargs)
         self.text = [[]]
         self.selected_line = 0
         self.text_in_selected_line = self.text[self.selected_line]
+        self.gap_btw_lines = self.fontSize / 3
 
         self.highlighted_text = []
         self.highlight_in_line_start = 0
@@ -20,7 +24,8 @@ class MyTextBox(TextBox):
         # TODO The text is highlighted only in the row, but not in the column.
         self.buffer = []
 
-        self.highlighted_text_colour = kwargs.get('highlightedTextColour', (0, 0, 255))
+        # self.highlighted_text_colour = kwargs.get('highlightedTextColour', (33, 66, 131))  # dark theme
+        self.highlighted_text_colour = kwargs.get('highlightedTextColour', (166, 210, 255))  # light theme
 
     def listen(self, events):
         if not self._hidden and not self._disabled:
@@ -142,9 +147,10 @@ class MyTextBox(TextBox):
             self.keyDown = True
             self.repeatKey = event
             self.repeatTime = time.time()
-            if self.highlighted_text:
-                self.erase_text()
-            self.add_text(self.buffer)
+            if self.buffer:
+                if self.highlighted_text:
+                    self.erase_text()
+                self.add_text(self.buffer)
 
         elif symbol_ord == 24:  # Ctrl + X
             if self.highlighted_text:
@@ -198,15 +204,15 @@ class MyTextBox(TextBox):
                  self._y + self._height - self.radius - self.borderThickness)
             ]
 
-            selectedRects = []
+            highlightedRects = []
             x = [self._x + self.textOffsetLeft]
             for symbol_index, symbol in enumerate(self.text_in_selected_line):
                 text = self.font.render(symbol, True, self.textColour)
                 start_index, end_index = self.get_valid_highlight_indexes()
                 if start_index <= symbol_index < end_index:
-                    selectedRects.append(
-                        (x[-1], self._y + self.cursorOffsetTop,
-                         text.get_width(), self._height - self.borderThickness * 2 - self.textOffsetBottom)
+                    highlightedRects.append(
+                        (x[-1], self._y + self.textOffsetBottom + self.fontSize * self.selected_line,
+                         text.get_width(), self.fontSize)
                     )
                 x.append(x[-1] + text.get_width())
 
@@ -222,31 +228,39 @@ class MyTextBox(TextBox):
             for circle in backgroundCircles:
                 pygame.draw.circle(self.win, self.colour, circle, self.radius)
 
-            for rect in selectedRects:
+            for rect in highlightedRects:
                 pygame.draw.rect(self.win, self.highlighted_text_colour, rect)
 
             # Display text or placeholder text
-            x = [self._x + self.textOffsetLeft]
-            for symbol in self.text_in_selected_line if len(self.text_in_selected_line) > 0 else self.placeholderText:
-                text = self.font.render(symbol, True, (self.textColour if len(self.text_in_selected_line) > 0
-                                                       else self.placeholderTextColour))
-                textRect = text.get_rect(bottomleft=(x[-1], self._y + self._height - self.textOffsetBottom))
-                self.win.blit(text, textRect)
-                x.append(x[-1] + text.get_width())
-                # TODO draw all text lines
+            if any(line for line in self.text):
+                for line_number, line in enumerate(self.text):
+                    self.draw_text(line, self.textColour, line_number)
+            else:
+                self.draw_text(self.placeholderText, self.placeholderTextColour, self.selected_line)
 
             if self.showCursor:
                 try:
                     pygame.draw.line(
                         self.win, self.cursorColour,
-                        (x[self.cursorPosition], self._y + self.cursorOffsetTop),
-                        (x[self.cursorPosition], self._y + self._height - self.cursorOffsetTop)
+                        (x[self.cursorPosition], self._y + self.textOffsetBottom + self.fontSize * self.selected_line),
+                        (x[self.cursorPosition],
+                         self._y + self.textOffsetBottom + self.fontSize + self.fontSize * self.selected_line),
+                        width=2
                     )
                 except IndexError:
                     self.cursorPosition -= 1
 
             if x[-1] > self._x + self._width - self.textOffsetRight:
                 self.maxLengthReached = True
+
+    def draw_text(self, string: str | list, color: tuple[int, int, int] | str, line_number: int):
+        x = [self._x + self.textOffsetLeft]
+        for symbol in string:
+            text = self.font.render(symbol, True, color)
+            textRect = text.get_rect(bottomleft=(
+                x[-1], self._y + self.textOffsetBottom + self.fontSize + self.fontSize * line_number))
+            self.win.blit(text, textRect)
+            x.append(x[-1] + text.get_width())
 
     def max_length_reached(self, text):
         x = [self._x + self.textOffsetLeft]
