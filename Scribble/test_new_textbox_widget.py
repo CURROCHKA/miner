@@ -1,6 +1,7 @@
 import time
 import pygame
 import pyperclip
+from typing import Iterable
 
 import pygame_widgets
 from pygame_widgets.textbox import TextBox
@@ -13,22 +14,29 @@ from pygame_widgets.mouse import Mouse, MouseState
 class MyTextBox(TextBox):
     def __init__(self, win: pygame.Surface, x: int, y: int, width: int, height: int, isSubWidget=False, **kwargs):
         super().__init__(win, x, y, width, height, isSubWidget, **kwargs)
+        self.font = kwargs.get('font', pygame.font.SysFont('Consolas', self.fontSize))  # Using monospaced fonts
+        # self.highlightedTextColour = kwargs.get('highlightedTextColour', (33, 66, 131))  # dark theme
+        self.highlightedTextColour = kwargs.get('highlightedTextColour', (166, 210, 255))  # light theme
+
         self.textOffsetTop = self.textOffsetBottom
         self.text = [[]]
-        self.selected_line = 0
 
-        self.highlighted_text = []
+        # Need to maintain cursor position
+        self.oldCursorPosition = self.cursorPosition
 
-        self.highlight_in_line_start = 0
-        self.highlight_in_line_end = 0
+        # The line in which user is currently typing
+        self.selectedLine = 0
 
-        self.highlight_line_start = 0
-        self.highlight_line_end = 0
+        self.highlightedText = []
 
-        # self.highlighted_text_colour = kwargs.get('highlightedTextColour', (33, 66, 131))  # dark theme
-        self.highlighted_text_colour = kwargs.get('highlightedTextColour', (166, 210, 255))  # light theme
+        # Edges of highlighting the text
+        self.highlightInLineStart = 0
+        self.highlightInLineEnd = 0
 
-    def listen(self, events):
+        self.highlightLineStart = 0
+        self.highlightLineEnd = 0
+
+    def listen(self, events: list[pygame.event.Event]) -> None:
         if not self._hidden and not self._disabled:
             if self.keyDown:
                 self.updateRepeatKey()
@@ -42,11 +50,12 @@ class MyTextBox(TextBox):
                     self.showCursor = True
                     self.cursorTime = time.time()
 
-                    self.set_cursor_position_after_mouse_event(x)
-                    self.highlight_in_line_start = self.highlight_in_line_end = self.cursorPosition
+                    # Setting start of highlighting
+                    self.setCursorPositionAfterMouseEvent(x)
+                    self.highlightInLineStart = self.highlightInLineEnd = self.cursorPosition
 
-                    self.set_selected_line_after_mouse_event(y)
-                    self.highlight_line_start = self.highlight_line_end = self.selected_line
+                    self.setSelectedLineAfterMouseEvent(y)
+                    self.highlightLineStart = self.highlightLineEnd = self.selectedLine
                 else:
                     self.selected = False
                     self.showCursor = False
@@ -54,13 +63,14 @@ class MyTextBox(TextBox):
 
             elif mouseState == MouseState.DRAG:
                 if self.contains(x, y):
-                    self.set_cursor_position_after_mouse_event(x)
-                    self.highlight_in_line_end = self.cursorPosition
+                    # Setting end of highlighting
+                    self.setCursorPositionAfterMouseEvent(x)
+                    self.highlightInLineEnd = self.cursorPosition
 
-                    self.set_selected_line_after_mouse_event(y)
-                    self.highlight_line_end = self.selected_line
+                    self.setSelectedLineAfterMouseEvent(y)
+                    self.highlightLineEnd = self.selectedLine
 
-                    self.highlight_text()
+                    self.highlightText()
 
             # Keyboard Input
             if self.selected:
@@ -72,52 +82,101 @@ class MyTextBox(TextBox):
                         self.repeatTime = time.time()
 
                         if event.key == pygame.K_BACKSPACE:
-                            self.maxLengthReached = False
-                            if self.highlighted_text:
-                                self.erase_text()
-                            elif self.cursorPosition != 0:
-                                self.highlight_in_line_start = self.cursorPosition - 1
-                                self.highlight_in_line_end = self.cursorPosition
-
-                                self.highlight_line_start = self.highlight_line_end = self.selected_line
-
-                                self.highlight_text()
-                                self.erase_text()
-
+                            if not self.isEmpty2DSequence(self.highlightedText):
+                                self.eraseHighlightedText()
                                 self.cursorPosition += 1
-                                self.cursorPosition = max(self.cursorPosition - 1, 0)
+
+                            elif self.cursorPosition != 0:
+                                self.text[self.selectedLine].pop(self.cursorPosition - 1)
+                                self.onTextChanged(*self.onTextChangedParams)
+
+                            elif self.cursorPosition == 0 and self.selectedLine != 0:
+                                if len(self.text[self.selectedLine]) == 0:
+                                    self.text.pop(self.selectedLine)
+
+                                self.selectedLine -= 1
+                                self.cursorPosition = len(self.text[self.selectedLine])
+                                self.clearSpecialChar()
+                                self.cursorPosition += 1
+                                self.onTextChanged(*self.onTextChangedParams)
+
+                            self.cursorPosition = max(self.cursorPosition - 1, 0)
+                            self.oldCursorPosition = self.cursorPosition
+
+                            if self.text[self.selectedLine] and not self.isSpecialChar(
+                                    self.text[self.selectedLine][-1]):
+                                self.shiftLines()
 
                         elif event.key == pygame.K_DELETE:
-                            if self.highlighted_text:
-                                self.erase_text()
-                            elif not self.cursorPosition >= len(self.text[self.selected_line]):
-                                self.maxLengthReached = False
-                                self.highlight_in_line_start = self.cursorPosition
-                                self.highlight_in_line_end = self.cursorPosition + 1
+                            if not self.isEmpty2DSequence(self.highlightedText):
+                                self.eraseHighlightedText()
 
-                                self.highlight_line_start = self.highlight_line_end = self.selected_line
+                            elif not self.cursorPosition >= len(self.text[self.selectedLine]) \
+                                    and not self.isSpecialChar(self.text[self.selectedLine][self.cursorPosition]):
+                                self.text[self.selectedLine].pop(self.cursorPosition)
+                                self.onTextChanged(*self.onTextChangedParams)
 
-                                self.highlight_text()
-                                self.erase_text()
+                            elif len(self.text) != 1 and \
+                                    all(self.isSpecialChar(char) for char in self.text[self.selectedLine]):
+                                self.text.pop(self.selectedLine)
+
+                            if self.text[self.selectedLine] and not self.isSpecialChar(
+                                    self.text[self.selectedLine][-1]):
+                                self.shiftLines()
 
                         elif event.key == pygame.K_RETURN:
-                            self.onSubmit(*self.onSubmitParams)
+                            keys = pygame.key.get_mods()
+
+                            if keys & pygame.KMOD_SHIFT:
+                                self.text[self.selectedLine].insert(self.cursorPosition, '\n')
+                                self.selectedLine += 1
+                                self.text.insert(self.selectedLine,
+                                                 self.text[self.selectedLine - 1][self.cursorPosition + 1:])
+                                self.text[self.selectedLine - 1] = self.text[self.selectedLine - 1][
+                                                                   :self.cursorPosition + 1]
+                                self.cursorPosition = self.oldCursorPosition = 0
+                            else:
+                                self.onSubmit(*self.onSubmitParams)
+
+                            self.resetHighlight()
 
                         elif event.key == pygame.K_RIGHT:
-                            self.cursorPosition = min(self.cursorPosition + 1, len(self.text[self.selected_line]))
-                            self.reset_highlight()
+                            self.cursorPosition = min(self.cursorPosition + 1,
+                                                      len(self.text[self.selectedLine]))
+                            self.skipSpecialChar()
+                            self.oldCursorPosition = self.cursorPosition
+                            self.resetHighlight()
 
                         elif event.key == pygame.K_LEFT:
                             self.cursorPosition = max(self.cursorPosition - 1, 0)
-                            self.reset_highlight()
+                            self.skipSpecialChar()
+                            self.oldCursorPosition = self.cursorPosition
+                            self.resetHighlight()
+
+                        elif event.key == pygame.K_UP:
+                            self.selectedLine = max(0, self.selectedLine - 1)
+                            self.cursorPosition = self.oldCursorPosition
+                            if self.cursorPosition >= len(self.text[self.selectedLine]):
+                                self.cursorPosition = len(self.text[self.selectedLine])
+                            self.skipSpecialChar()
+                            self.resetHighlight()
+
+                        elif event.key == pygame.K_DOWN:
+                            self.selectedLine = min(len(self.text) - 1, self.selectedLine + 1)
+                            self.cursorPosition = self.oldCursorPosition
+                            if self.cursorPosition >= len(self.text[self.selectedLine]):
+                                self.cursorPosition = len(self.text[self.selectedLine])
+                            self.skipSpecialChar()
+                            self.resetHighlight()
 
                         elif event.key == pygame.K_HOME:
-                            self.cursorPosition = 0
-                            self.reset_highlight()
+                            self.cursorPosition = self.oldCursorPosition = 0
+                            self.resetHighlight()
 
                         elif event.key == pygame.K_END:
-                            self.cursorPosition = len(self.text[self.selected_line])
-                            self.reset_highlight()
+                            self.cursorPosition = self.oldCursorPosition = len(self.text[self.selectedLine])
+                            self.skipSpecialChar()
+                            self.resetHighlight()
 
                         elif event.key == pygame.K_ESCAPE:
                             if not self.escape:
@@ -127,17 +186,16 @@ class MyTextBox(TextBox):
                                 self.repeatKey = None
                                 self.keyDown = None
                                 self.firstRepeat = True
-                                self.reset_highlight()
+                                self.resetHighlight()
 
-                        # elif not self.maxLengthReached:
-                        symbol = event.unicode
-                        if len(symbol) > 0:
-                            if not (0 <= ord(symbol) <= 31 or ord(symbol) == 127):  # NOT Spec symbols
-                                if self.highlighted_text:
-                                    self.erase_text()
-                                self.add_text(symbol)
+                        char = event.unicode
+                        if len(char) > 0:
+                            if not self.isSpecialChar(char):  # NOT Spec chars
+                                if not self.isEmpty2DSequence(self.highlightedText):
+                                    self.eraseHighlightedText()
+                                self.addText(char)
                             else:
-                                self.listen_specific_symbol(event)
+                                self.listenSpecialChar(event)
 
                     elif event.type == pygame.KEYUP:
                         self.repeatKey = None
@@ -145,43 +203,42 @@ class MyTextBox(TextBox):
                         self.firstRepeat = True
                         self.escape = False
 
-    def listen_specific_symbol(self, event: pygame.event.Event):
-        symbol_ord = ord(event.unicode)
-        if symbol_ord == 1:  # Ctrl + A
-            self.selected_line = len(self.text) - 1
-            self.cursorPosition = len(self.text[self.selected_line])
+    def listenSpecialChar(self, event: pygame.event.Event) -> None:
+        charOrd = ord(event.unicode)
+        if charOrd == 1:  # Ctrl + A
+            self.selectedLine = len(self.text) - 1
+            self.cursorPosition = len(self.text[self.selectedLine])
 
-            self.highlight_in_line_start = 0
-            self.highlight_in_line_end = len(self.text[self.selected_line])
+            self.highlightInLineStart = 0
+            self.highlightInLineEnd = len(self.text[self.selectedLine])
 
-            self.highlight_line_start = 0
-            self.highlight_line_end = len(self.text) - 1
+            self.highlightLineStart = 0
+            self.highlightLineEnd = len(self.text) - 1
 
-            self.highlight_text()
+            self.highlightText()
 
-        elif symbol_ord == 3:  # Ctrl + C
-            if self.highlighted_text:
-                self.copy_highlighted_text()
+        elif charOrd == 3:  # Ctrl + C
+            if not self.isEmpty2DSequence(self.highlightedText):
+                self.copyHighlightedText()
 
-        elif symbol_ord == 22:  # Ctrl + V
+        elif charOrd == 22:  # Ctrl + V
             self.keyDown = True
             self.repeatKey = event
             self.repeatTime = time.time()
             text = pyperclip.paste()
-            if len(text) > 0:
-                if self.highlighted_text:
-                    self.erase_text()
-                self.add_text(text)
+            if not self.isEmpty2DSequence(self.highlightedText):
+                self.eraseHighlightedText()
+            self.addText(text)
 
-        elif symbol_ord == 24:  # Ctrl + X
-            if self.highlighted_text:
+        elif charOrd == 24:  # Ctrl + X
+            if not self.isEmpty2DSequence(self.highlightedText):
                 self.keyDown = True
                 self.repeatKey = event
                 self.repeatTime = time.time()
-                self.copy_highlighted_text()
-                self.erase_text()
+                self.copyHighlightedText()
+                self.eraseHighlightedText()
 
-    def draw(self):
+    def draw(self) -> None:
         """ Display to surface """
         if not self._hidden:
             if self.selected:
@@ -225,23 +282,21 @@ class MyTextBox(TextBox):
                  self._y + self._height - self.radius - self.borderThickness)
             ]
 
-            line_start, line_end = self.get_valid_highlight_line_indexes()
-            if line_start == line_end:
-                in_line_start, in_line_end = self.get_valid_highlight_in_line_indexes()
-                highlightedRects = self.get_selected_rect(line_start, in_line_start, in_line_end)
+            lineStart, lineEnd = self.getValidHighlightLineIndexes()
+            inLineStart, inLineEnd = self.getValidHighlightInLineIndexes()
+
+            if lineStart == lineEnd:
+                highlightedRects = self.getHighlightedRect(lineStart, inLineStart, inLineEnd)
             else:
-                in_line_start = self.highlight_in_line_start
-                in_line_end = self.highlight_in_line_end
+                if lineStart != self.highlightLineStart:
+                    inLineStart = self.highlightInLineEnd
+                    inLineEnd = self.highlightInLineStart
 
-                if line_start != self.highlight_line_start:
-                    in_line_start = self.highlight_in_line_end
-                    in_line_end = self.highlight_in_line_start
-
-                highlightedRects =\
-                    self.get_selected_rect(line_start, in_line_start, len(self.text[line_start]))
-                for line in range(line_start + 1, line_end):
-                    highlightedRects += self.get_selected_rect(line, 0, len(self.text[line]))
-                highlightedRects += self.get_selected_rect(line_end, 0, in_line_end)
+                highlightedRects = \
+                    self.getHighlightedRect(lineStart, inLineStart, len(self.text[lineStart]))
+                for line in range(lineStart + 1, lineEnd):
+                    highlightedRects += self.getHighlightedRect(line, 0, len(self.text[line]))
+                highlightedRects += self.getHighlightedRect(lineEnd, 0, inLineEnd)
 
             for rect in borderRects:
                 pygame.draw.rect(self.win, self.borderColour, rect)
@@ -256,194 +311,256 @@ class MyTextBox(TextBox):
                 pygame.draw.circle(self.win, self.colour, circle, self.radius)
 
             for rect in highlightedRects:
-                pygame.draw.rect(self.win, self.highlighted_text_colour, rect)
+                pygame.draw.rect(self.win, self.highlightedTextColour, rect)
 
             # Display text or placeholder text
-            if any(line for line in self.text):
-                for line_number, line in enumerate(self.text):
-                    self.draw_text(line, self.textColour, line_number)
+            if not (len(self.text) == 1 and len(self.text[0]) == 0):
+                for lineIndex, line in enumerate(self.text):
+                    self.drawText(line, self.textColour, lineIndex)
             else:
-                self.draw_text(self.placeholderText, self.placeholderTextColour, self.selected_line)
+                self.drawText(self.placeholderText, self.placeholderTextColour, self.selectedLine)
 
-            x = [self._x + self.textOffsetLeft]
-            for symbol in self.text[self.selected_line]:
-                if not symbol.isprintable():
-                    continue
-                text = self.font.render(symbol, True, self.textColour)
-                x.append(x[-1] + text.get_width())
+            x = self.getLineX(self.text[self.selectedLine])
             if self.showCursor:
                 try:
                     pygame.draw.line(
                         self.win, self.cursorColour,
                         (x[self.cursorPosition],
-                         self._y + self.textOffsetTop + self.fontSize * self.selected_line),
+                         self._y + self.textOffsetTop + self.fontSize * self.selectedLine),
                         (x[self.cursorPosition],
-                         self._y + self.textOffsetTop + self.fontSize + self.fontSize * self.selected_line),
+                         self._y + self.textOffsetTop + self.fontSize + self.fontSize * self.selectedLine),
                         width=2
                     )
                 except IndexError:
                     self.cursorPosition -= 1
 
-            if x[-1] > self._x + self._width - self.textOffsetRight:
-                self.maxLengthReached = True
-
-    def draw_text(self, string: str | list, color: tuple[int, int, int] | str, line_number: int):
-        x = [self._x + self.textOffsetLeft]
-        for symbol in string:
-            if not symbol.isprintable():
+    def drawText(self, string: str | list, color: tuple[int, int, int] | str, lineIndex: int) -> None:
+        x = self.getLineX(string)
+        for charIndex, char in enumerate(string):
+            if not char.isprintable():
                 continue
-            text = self.font.render(symbol, True, color)
+            text = self.font.render(char, True, color)
             textRect = text.get_rect(bottomleft=(
-                x[-1], self._y + self.textOffsetTop + self.fontSize + self.fontSize * line_number))
+                x[charIndex], self._y + self.textOffsetTop + self.fontSize + self.fontSize * lineIndex))
             self.win.blit(text, textRect)
-            x.append(x[-1] + text.get_width())
 
-    def get_selected_rect(self, line: int, in_line_start: int, in_line_end: int):
-        x = [self._x + self.textOffsetLeft]
-        highlightedRects = []
-        for symbol_index, symbol in enumerate(self.text[line]):
-            if not symbol.isprintable():
-                continue
-            text = self.font.render(symbol, True, self.textColour)
-            if in_line_start <= symbol_index < in_line_end:
-                highlightedRects.append(
-                    (x[-1], self._y + self.textOffsetTop + self.fontSize * line,
-                     text.get_width(), self.fontSize)
-                )
-            x.append(x[-1] + text.get_width())
-        return highlightedRects
+    def setText(self, text: str) -> None:
+        self.text = [[]]
+        self.selectedLine = 0
+        self.cursorPosition = self.oldCursorPosition = 0
+        self.addText(text)
 
-    def setText(self, text):
-        text = []
-        max_length_reached = False
-        for symbol in text:
-            text.append(symbol)
-            if not max_length_reached and self.max_length_reached(text):
-                text = []
-
-    def getText(self):
+    def getText(self) -> str:
         text = ''
         for line in self.text:
             text += ''.join(line)
         return text
 
-    def copy_highlighted_text(self):
-        text = []
-        for line in self.highlighted_text:
-            text.append(''.join(line))
-        pyperclip.copy('\n'.join(text))
+    def addText(self, text: str):
+        if not self.isEmpty2DSequence(self.highlightedText):
+            self.eraseHighlightedText()
 
-    def max_length_reached(self, text):
-        x = [self._x + self.textOffsetLeft]
-        for symbol in text:
-            if not symbol.isprintable():
-                continue
-            text = self.font.render(symbol, True, self.textColour)
-            x.append(x[-1] + text.get_width())
-            if x[-1] >= self._x + self._width - self.textOffsetRight:
-                return True
-        return False
+        text = text.replace('\t', ' ' * 4)
 
-    def add_text(self, sequence: list[str]):
-        text = self.text[self.selected_line][:]
-        if self.highlighted_text:
-            self.erase_text()
-        for symbol in sequence:
-            if not symbol.isprintable():
-                continue
-            text.insert(self.cursorPosition, symbol)
-            if self.max_length_reached(text):
-                text = []
-                self.selected_line += 1
+        for char in text:
+            self.insertCharInText(self.selectedLine, self.cursorPosition, char)
+
+            if ord(char) == 10:  # \n
+                self.selectedLine += 1
+                self.cursorPosition = 0
+                self.text.append([])
+
+            for lineIndex in range(self.selectedLine, len(self.text)):
+                if self.maxWidthReached(lineIndex):
+                    lastChar = self.text[lineIndex][-1]
+                    self.text[lineIndex].pop(-1)
+
+                    self.insertCharInText(lineIndex + 1, 0, lastChar)
+
+                    if lastChar is char:
+                        self.selectedLine += 1
+                        self.cursorPosition = 0
+
+            if not self.isSpecialChar(char):
+                self.cursorPosition += 1
+                self.onTextChanged(*self.onTextChangedParams)
+
+        self.oldCursorPosition = self.cursorPosition
+
+    def eraseHighlightedText(self):
+        lineStart, lineEnd = self.getValidHighlightLineIndexes()
+        inLineStart, inLineEnd = self.getValidHighlightInLineIndexes()
+
+        if lineStart == lineEnd:  # Simple erase in line
+            del self.text[self.selectedLine][inLineStart:inLineEnd]
+        else:
+            if lineStart == self.highlightLineStart:
+                inLineStart, inLineEnd = self.highlightInLineStart, self.highlightInLineEnd
+            else:
+                inLineStart, inLineEnd = self.highlightInLineEnd, self.highlightInLineStart
+
+            del self.text[lineStart][inLineStart:]
+            del self.text[lineEnd][:inLineEnd]
+            del self.text[lineStart + 1: lineEnd]
+
             try:
-                self.text[self.selected_line].insert(self.cursorPosition, symbol)
+                if not self.text[lineStart]:
+                    self.text.pop(lineStart)
             except IndexError:
-                self.text.append([symbol])
-            self.cursorPosition += 1
-            self.onTextChanged(*self.onTextChangedParams)
+                pass
 
-    def erase_text(self):
-        line_start, line_end = self.get_valid_highlight_line_indexes()
-        in_line_start, in_line_end = self.get_valid_highlight_in_line_indexes()
+            try:
+                if not self.text[lineEnd]:
+                    self.text.pop(lineEnd)
+            except IndexError:
+                pass
 
-        if line_start == self.highlight_line_start:
-            self.text[self.selected_line] = self.text[self.selected_line][:in_line_start] + self.text[self.selected_line][in_line_end:]
+        self.selectedLine = lineStart
+        self.cursorPosition = inLineStart
+
+        self.resetHighlight()
+
+    def highlightText(self):
+        lineStart, lineEnd = self.getValidHighlightLineIndexes()
+        inLineStart, inLineEnd = self.getValidHighlightInLineIndexes()
+
+        if lineStart == lineEnd:
+            self.highlightedText = [self.text[lineStart][inLineStart:inLineEnd]]
         else:
-            in_line_start = self.highlight_line_end
-            in_line_end = self.highlight_line_start
+            if lineStart == self.highlightLineStart:
+                inLineStart, inLineEnd = self.highlightInLineStart, self.highlightInLineEnd
+            else:
+                inLineStart, inLineEnd = self.highlightInLineEnd, self.highlightInLineStart
 
-            self.text[line_start] = self.text[line_start][:in_line_start]
-            for line in self.text[line_start + 1: line_end]:
-                self.text.remove(line)
-            length_of_removed_lines = line_end - line_start + 1
-            self.text[line_end - length_of_removed_lines] = self.text[line_end - length_of_removed_lines][in_line_end:]
+            self.highlightedText = [self.text[lineStart][inLineStart:]]
+            self.highlightedText += self.text[lineStart + 1: lineEnd]
+            self.highlightedText += [self.text[lineEnd][:inLineEnd]]
 
-        self.cursorPosition = in_line_start
-        self.selected_line = line_start
+    def resetHighlight(self) -> None:
+        self.highlightInLineStart = self.highlightInLineEnd = 0
+        self.highlightLineStart = self.highlightLineEnd = 0
+        self.highlightedText = []
 
-        self.reset_highlight()
+    def shiftLines(self) -> None:
+        flag = False
+        for lineIndex in range(self.selectedLine, len(self.text) - 1):
+            while not self.maxWidthReached(lineIndex):
+                if not self.isEmpty2DSequence(self.text[lineIndex + 1]):
+                    self.insertCharInText(lineIndex, len(self.text[lineIndex]), self.text[lineIndex + 1][0])
+                    self.text[lineIndex + 1].pop(0)
+                else:
+                    self.text.pop(lineIndex + 1)
+                    flag = True
+                    break
+            if flag:
+                break
 
-    def highlight_text(self):
-        line_start, line_end = self.get_valid_highlight_line_indexes()
-        if line_start == line_end:
-            in_line_start, in_line_end = self.get_valid_highlight_in_line_indexes()
-            self.highlighted_text = [self.text[line_start][in_line_start:in_line_end]]
-        else:
-            self.highlighted_text = [self.text[line_start][self.highlight_in_line_start:]]
-            for line_number in range(line_start + 1, line_end):
-                self.highlighted_text.append([self.text[line_number]])
-            self.highlighted_text += [self.text[line_end][:self.highlight_in_line_end]]
+    def insertCharInText(self, lineIndex: int, inLineIndex: int, char: str) -> None:
+        try:
+            self.text[lineIndex].insert(inLineIndex, char)
+        except IndexError:
+            self.text.append([char])
 
-    def set_selected_line_after_mouse_event(self, y: int):
-        coord = [self._y + self.textOffsetTop + self.fontSize]
-        for line_number in range(len(self.text)):
-            if coord[-1] - self.fontSize / 2 <= y <= coord[-1] + self.fontSize / 2:
-                self.selected_line = line_number
+    def clearSpecialChar(self):
+        if self.text[self.selectedLine]:
+            while self.cursorPosition > 0 \
+                    and self.isSpecialChar(self.text[self.selectedLine][self.cursorPosition - 1]):
+                self.text[self.selectedLine].pop(self.cursorPosition - 1)
+                self.cursorPosition -= 1
+
+    def skipSpecialChar(self):
+        if self.text[self.selectedLine]:
+            while self.cursorPosition > 0 \
+                    and self.isSpecialChar(self.text[self.selectedLine][self.cursorPosition - 1]):
+                self.cursorPosition = max(0, self.cursorPosition - 1)
+
+    def getLineX(self, line: list[str]) -> list[int]:
+        x = [self._x + self.textOffsetLeft]
+        countSpecChars = self.countSpecChars(self.text[self.selectedLine])
+
+        for charIndex in range(len(line) - countSpecChars):
+            textWidth = self.font.size(line[charIndex])[0]
+            x.append(x[-1] + textWidth)
+        return x
+
+    def getHighlightedRect(self, lineIndex: int, inLineStart: int, inLineEnd: int) -> list[tuple[int, int, int, int]]:
+        x = self.getLineX(self.text[lineIndex])
+        highlightedRects = []
+        for charIndex, char in enumerate(self.text[lineIndex]):
+            textWidth = self.font.size(char)[0]
+            if inLineStart <= charIndex < inLineEnd:
+                highlightedRects.append(
+                    (x[charIndex], self._y + self.textOffsetTop + self.fontSize * lineIndex,
+                     textWidth, self.fontSize)
+                )
+        return highlightedRects
+
+    def maxWidthReached(self, lineIndex: int) -> bool:
+        x = self.getLineX(self.text[lineIndex])
+        return x[-1] >= self._x + self._width - self.textOffsetRight - self.textOffsetLeft
+
+    def setCursorPositionAfterMouseEvent(self, x: int) -> None:
+        coord = self.getLineX(self.text[self.selectedLine])
+        countSpecChars = self.countSpecChars(self.text[self.selectedLine])
+
+        for charIndex in range(len(self.text[self.selectedLine]) - 1 - countSpecChars):
+            char1 = self.text[self.selectedLine][charIndex]
+            char2 = self.text[self.selectedLine][charIndex + 1]
+
+            charWidth1 = self.font.size(char1)[0]
+            charWidth2 = self.font.size(char2)[0]
+
+            x1 = charWidth1 + coord[charIndex]
+            x2 = charWidth2 + x1
+
+            if x1 - charWidth1 / 2 <= x <= x2 + charWidth2 / 2:
+                self.cursorPosition = charIndex + 1
+
+        if self.text[self.selectedLine]:
+            if x < coord[0] + self.font.size(self.text[self.selectedLine][0])[0] / 2:
+                self.cursorPosition = 0
+            elif x > coord[-1] - self.font.size(self.text[self.selectedLine][-1])[0] / 2:
+                self.cursorPosition = len(self.text[self.selectedLine])
+
+    def setSelectedLineAfterMouseEvent(self, y: int) -> None:
+        coord = [self._y + self.textOffsetTop]
+
+        for lineIndex in range(len(self.text)):
+            if coord[-1] <= y <= coord[-1] + self.fontSize:
+                self.selectedLine = lineIndex
             coord.append(coord[-1] + self.fontSize)
 
         if y < coord[0] + self.fontSize / 2:
-            self.selected_line = 0
+            self.selectedLine = 0
         elif y > coord[-1] + self.fontSize / 2:
-            self.selected_line = len(self.text) - 1
+            self.selectedLine = len(self.text) - 1
 
-    def set_cursor_position_after_mouse_event(self, x: int):
-        coord = [self._x + self.textOffsetLeft]
-        for symbol_index in range(len(self.text[self.selected_line]) - 1):
-            symbol1 = self.text[self.selected_line][symbol_index]
-            symbol2 = self.text[self.selected_line][symbol_index + 1]
+    def getValidHighlightLineIndexes(self) -> tuple[int, int]:
+        startIndex = min(self.highlightLineStart, self.highlightLineEnd)
+        endIndex = max(self.highlightLineStart, self.highlightLineEnd)
+        return startIndex, endIndex
 
-            symbol_render1 = self.font.render(symbol1, True, self.textColour)
-            symbol_render2 = self.font.render(symbol2, True, self.textColour)
+    def getValidHighlightInLineIndexes(self) -> tuple[int, int]:
+        startIndex = min(self.highlightInLineStart, self.highlightInLineEnd)
+        endIndex = max(self.highlightInLineStart, self.highlightInLineEnd)
+        return startIndex, endIndex
 
-            x1 = symbol_render1.get_width() + coord[-1]
-            x2 = symbol_render2.get_width() + x1
+    def copyHighlightedText(self) -> None:
+        text = ''
+        for line in self.highlightedText:
+            text += ''.join(line)
+        pyperclip.copy(text)
 
-            coord.append(x1)
+    def countSpecChars(self, line: list[str]):
+        return len([char for char in line if self.isSpecialChar(char)])
 
-            if x1 - symbol_render1.get_width() / 2 <= x <= x2 + symbol_render2.get_width() / 2:
-                self.cursorPosition = symbol_index + 1
+    @staticmethod
+    def isSpecialChar(char: str) -> bool:
+        return 0 <= ord(char) <= 31 or ord(char) == 127
 
-        if self.text[self.selected_line]:
-            if x < coord[0] + self.font.render(self.text[self.selected_line][0], True, self.textColour).get_width() / 2:
-                self.cursorPosition = 0
-            elif x > coord[-1] + self.font.render(self.text[self.selected_line][-1], True,
-                                                  self.textColour).get_width() / 2:
-                self.cursorPosition = len(self.text[self.selected_line])
-
-    def reset_highlight(self):
-        self.highlight_in_line_start = self.highlight_in_line_end = 0
-        self.highlight_line_start = self.highlight_line_end = 0
-        self.highlighted_text = []
-
-    def get_valid_highlight_in_line_indexes(self):
-        start_index = min(self.highlight_in_line_start, self.highlight_in_line_end)
-        end_index = max(self.highlight_in_line_start, self.highlight_in_line_end)
-        return start_index, end_index
-
-    def get_valid_highlight_line_indexes(self):
-        start_index = min(self.highlight_line_start, self.highlight_line_end)
-        end_index = max(self.highlight_line_start, self.highlight_line_end)
-        return start_index, end_index
+    @staticmethod
+    def isEmpty2DSequence(sequence: Iterable[Iterable]) -> bool:  # It's not a good name for a function.
+        return not any(element for element in sequence)
 
 
 if __name__ == '__main__':
